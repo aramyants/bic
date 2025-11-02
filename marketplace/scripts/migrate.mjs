@@ -1,47 +1,24 @@
 import "dotenv/config";
-import fs from "node:fs";
-import path from "node:path";
-import Database from "better-sqlite3";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { migrate } from "drizzle-orm/node-postgres/migrator";
+import { Pool } from "pg";
 
-const resolveDatabasePath = () => {
-  const envPath = process.env.DATABASE_PATH;
-  if (!envPath) {
-    return path.join(process.cwd(), "sqlite", "bic.db");
-  }
+const connectionString = process.env.DATABASE_URL;
 
-  return path.isAbsolute(envPath)
-    ? envPath
-    : path.join(process.cwd(), envPath);
-};
+if (!connectionString) {
+  console.error("DATABASE_URL is not set");
+  process.exit(1);
+}
 
-const databasePath = resolveDatabasePath();
-const migrationsDir = path.join(process.cwd(), "drizzle");
+const pool = new Pool({ connectionString });
 
-const ensureDatabaseDirectory = () => {
-  const dir = path.dirname(databasePath);
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-  }
-};
-
-const applyMigrations = () => {
-  ensureDatabaseDirectory();
-
-  const db = new Database(databasePath);
-  const files = fs
-    .readdirSync(migrationsDir)
-    .filter((file) => file.endsWith(".sql"))
-    .sort();
-
-  db.pragma("foreign_keys = ON");
-
-  for (const file of files) {
-    const filePath = path.join(migrationsDir, file);
-    const sql = fs.readFileSync(filePath, "utf-8");
-    db.exec(sql);
-  }
-
-  db.close();
-};
-
-applyMigrations();
+try {
+  const db = drizzle(pool);
+  await migrate(db, { migrationsFolder: "drizzle" });
+  console.log("Migrations applied");
+} catch (error) {
+  console.error("Migration failed", error);
+  process.exitCode = 1;
+} finally {
+  await pool.end();
+}

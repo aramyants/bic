@@ -22,7 +22,7 @@ export async function signIn(email: string, password: string) {
 
   const token = generateSessionToken()
   const hashed = hashSessionToken(token)
-  const expiresAt = getExpiryDate(SESSION_TTL_DAYS).toISOString()
+  const expiresAt = getExpiryDate(SESSION_TTL_DAYS)
 
   const headerSource = headers()
   const resolvedHeaders =
@@ -87,7 +87,7 @@ export async function signIn(email: string, password: string) {
     secure: true,
     sameSite: "strict",
     path: "/",
-    expires: new Date(expiresAt),
+    expires: expiresAt,
   })
 
   return { id: user.id, email: user.email, name: user.name }

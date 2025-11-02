@@ -1,19 +1,28 @@
-import { sqliteTable, text, integer, real, primaryKey, uniqueIndex, index } from "drizzle-orm/sqlite-core";
+import {
+  boolean,
+  index,
+  integer,
+  numeric,
+  pgTable,
+  primaryKey,
+  serial,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-import { sql } from "drizzle-orm";
 
-const uuid = () => sql`lower(hex(randomblob(16)))`;
-
-export const users = sqliteTable(
+export const users = pgTable(
   "users",
   {
-    id: text("id").primaryKey().default(uuid()),
+    id: uuid("id").defaultRandom().primaryKey(),
     email: text("email").notNull(),
     name: text("name"),
     passwordHash: text("password_hash").notNull(),
     role: text("role").notNull().default("admin"),
-    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-    updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    createdAt: timestamp("created_at", { withTimezone: false }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: false }).defaultNow().notNull(),
   },
   (table) => ({
     emailIdx: uniqueIndex("users_email_idx").on(table.email),
@@ -23,14 +32,16 @@ export const users = sqliteTable(
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 
-export const adminSessions = sqliteTable(
+export const adminSessions = pgTable(
   "admin_sessions",
   {
-    id: text("id").primaryKey().default(uuid()),
-    userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
     tokenHash: text("token_hash").notNull(),
-    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-    expiresAt: text("expires_at").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: false }).defaultNow().notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: false }).notNull(),
     userAgent: text("user_agent"),
     ipAddress: text("ip_address"),
   },
@@ -39,10 +50,10 @@ export const adminSessions = sqliteTable(
   }),
 );
 
-export const vehicles = sqliteTable(
+export const vehicles = pgTable(
   "vehicles",
   {
-    id: text("id").primaryKey().default(uuid()),
+    id: uuid("id").defaultRandom().primaryKey(),
     slug: text("slug").notNull(),
     title: text("title").notNull(),
     brand: text("brand").notNull(),
@@ -74,9 +85,9 @@ export const vehicles = sqliteTable(
     seats: integer("seats"),
     color: text("color"),
     vin: text("vin"),
-    co2Emission: real("co2_emission"),
-    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-    updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    co2Emission: numeric("co2_emission"),
+    createdAt: timestamp("created_at", { withTimezone: false }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: false }).defaultNow().notNull(),
     meta: text("meta"),
   },
   (table) => ({
@@ -88,47 +99,46 @@ export const vehicles = sqliteTable(
 export type Vehicle = typeof vehicles.$inferSelect;
 export type NewVehicle = typeof vehicles.$inferInsert;
 
-export const vehicleImages = sqliteTable(
-  "vehicle_images",
-  {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    vehicleId: text("vehicle_id").notNull().references(() => vehicles.id, { onDelete: "cascade" }),
-    url: text("url").notNull(),
-    altText: text("alt_text"),
-    isPrimary: integer("is_primary", { mode: "boolean" }).notNull().default(false),
-    sortOrder: integer("sort_order").notNull().default(0),
-    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-  },
-);
+export const vehicleImages = pgTable("vehicle_images", {
+  id: serial("id").primaryKey(),
+  vehicleId: uuid("vehicle_id")
+    .notNull()
+    .references(() => vehicles.id, { onDelete: "cascade" }),
+  url: text("url").notNull(),
+  altText: text("alt_text"),
+  isPrimary: boolean("is_primary").notNull().default(false),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: false }).defaultNow().notNull(),
+});
 
-export const vehicleFeatures = sqliteTable(
-  "vehicle_features",
-  {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    vehicleId: text("vehicle_id").notNull().references(() => vehicles.id, { onDelete: "cascade" }),
-    label: text("label").notNull(),
-    icon: text("icon"),
-    category: text("category"),
-    sortOrder: integer("sort_order").notNull().default(0),
-  },
-);
+export const vehicleFeatures = pgTable("vehicle_features", {
+  id: serial("id").primaryKey(),
+  vehicleId: uuid("vehicle_id")
+    .notNull()
+    .references(() => vehicles.id, { onDelete: "cascade" }),
+  label: text("label").notNull(),
+  icon: text("icon"),
+  category: text("category"),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
 
-export const vehicleSpecifications = sqliteTable(
-  "vehicle_specifications",
-  {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    vehicleId: text("vehicle_id").notNull().references(() => vehicles.id, { onDelete: "cascade" }),
-    group: text("group"),
-    label: text("label").notNull(),
-    value: text("value").notNull(),
-    sortOrder: integer("sort_order").notNull().default(0),
-  },
-);
+export const vehicleSpecifications = pgTable("vehicle_specifications", {
+  id: serial("id").primaryKey(),
+  vehicleId: uuid("vehicle_id")
+    .notNull()
+    .references(() => vehicles.id, { onDelete: "cascade" }),
+  group: text("group"),
+  label: text("label").notNull(),
+  value: text("value").notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
 
-export const vehicleMarkets = sqliteTable(
+export const vehicleMarkets = pgTable(
   "vehicle_markets",
   {
-    vehicleId: text("vehicle_id").notNull().references(() => vehicles.id, { onDelete: "cascade" }),
+    vehicleId: uuid("vehicle_id")
+      .notNull()
+      .references(() => vehicles.id, { onDelete: "cascade" }),
     countryCode: text("country_code").notNull(),
   },
   (table) => ({
@@ -136,35 +146,33 @@ export const vehicleMarkets = sqliteTable(
   }),
 );
 
-export const logisticsMilestones = sqliteTable(
-  "logistics_milestones",
-  {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    vehicleId: text("vehicle_id").notNull().references(() => vehicles.id, { onDelete: "cascade" }),
-    label: text("label").notNull(),
-    description: text("description"),
-    etaDays: integer("eta_days"),
-    sortOrder: integer("sort_order").notNull().default(0),
-  },
-);
+export const logisticsMilestones = pgTable("logistics_milestones", {
+  id: serial("id").primaryKey(),
+  vehicleId: uuid("vehicle_id")
+    .notNull()
+    .references(() => vehicles.id, { onDelete: "cascade" }),
+  label: text("label").notNull(),
+  description: text("description"),
+  etaDays: integer("eta_days"),
+  sortOrder: integer("sort_order").notNull().default(0),
+});
 
-export const complianceDocuments = sqliteTable(
-  "compliance_documents",
-  {
-    id: integer("id").primaryKey({ autoIncrement: true }),
-    vehicleId: text("vehicle_id").notNull().references(() => vehicles.id, { onDelete: "cascade" }),
-    title: text("title").notNull(),
-    url: text("url").notNull(),
-    issuedAt: text("issued_at"),
-    expiresAt: text("expires_at"),
-  },
-);
+export const complianceDocuments = pgTable("compliance_documents", {
+  id: serial("id").primaryKey(),
+  vehicleId: uuid("vehicle_id")
+    .notNull()
+    .references(() => vehicles.id, { onDelete: "cascade" }),
+  title: text("title").notNull(),
+  url: text("url").notNull(),
+  issuedAt: timestamp("issued_at", { withTimezone: false }),
+  expiresAt: timestamp("expires_at", { withTimezone: false }),
+});
 
-export const inquiries = sqliteTable(
+export const inquiries = pgTable(
   "inquiries",
   {
-    id: text("id").primaryKey().default(uuid()),
-    vehicleId: text("vehicle_id").references(() => vehicles.id, { onDelete: "set null" }),
+    id: uuid("id").defaultRandom().primaryKey(),
+    vehicleId: uuid("vehicle_id").references(() => vehicles.id, { onDelete: "set null" }),
     customerType: text("customer_type").notNull().default("individual"),
     name: text("name").notNull(),
     email: text("email").notNull(),
@@ -173,22 +181,22 @@ export const inquiries = sqliteTable(
     status: text("status").notNull().default("new"),
     estimatedCostCents: integer("estimated_cost_cents"),
     payload: text("payload"),
-    createdAt: text("created_at").notNull().default(sql`CURRENT_TIMESTAMP`),
-    updatedAt: text("updated_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    createdAt: timestamp("created_at", { withTimezone: false }).defaultNow().notNull(),
+    updatedAt: timestamp("updated_at", { withTimezone: false }).defaultNow().notNull(),
   },
   (table) => ({
     statusIdx: index("inquiries_status_idx").on(table.status, table.createdAt),
   }),
 );
 
-export const exchangeRates = sqliteTable(
+export const exchangeRates = pgTable(
   "exchange_rates",
   {
-    id: text("id").primaryKey().default(uuid()),
+    id: uuid("id").defaultRandom().primaryKey(),
     baseCurrency: text("base_currency").notNull(),
     targetCurrency: text("target_currency").notNull(),
-    rate: real("rate").notNull(),
-    fetchedAt: text("fetched_at").notNull().default(sql`CURRENT_TIMESTAMP`),
+    rate: numeric("rate").notNull(),
+    fetchedAt: timestamp("fetched_at", { withTimezone: false }).defaultNow().notNull(),
     source: text("source").notNull().default("cbr-xml-daily"),
   },
   (table) => ({

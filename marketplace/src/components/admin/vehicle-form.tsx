@@ -1,9 +1,17 @@
 "use client";
 
-import { forwardRef, useEffect, useRef, type ReactNode } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import { forwardRef, useActionState, useEffect, useRef, type ReactNode } from "react";
+import { useFormStatus } from "react-dom";
 
-import { BODY_TYPES, COUNTRIES, FUEL_TYPES, TRANSMISSIONS } from "@/lib/constants";
+import {
+  BODY_TYPES,
+  BODY_TYPE_LABELS,
+  COUNTRIES,
+  FUEL_TYPES,
+  FUEL_TYPE_LABELS,
+  TRANSMISSIONS,
+  TRANSMISSION_LABELS,
+} from "@/lib/constants";
 import type { VehicleActionState } from "@/server/vehicles-admin";
 
 type VehicleFormAction = (
@@ -21,14 +29,17 @@ type SelectOption = string | { value: string; label: string };
 
 const INITIAL_STATE: VehicleActionState = { status: "idle" };
 
+const DEFAULT_SUCCESS_MESSAGE = "Изменения успешно сохранены.";
+const DEFAULT_ERROR_MESSAGE = "Не удалось сохранить данные. Проверьте поля и попробуйте ещё раз.";
+
 export function VehicleForm({ action, defaultValues = {}, submitLabel = "Сохранить" }: VehicleFormProps) {
-  const [state, formAction] = useFormState(action, INITIAL_STATE);
+  const [state, formAction] = useActionState(action, INITIAL_STATE);
   const messageRef = useRef<HTMLDivElement | null>(null);
 
   const showSuccess = state.status === "success";
   const showError = state.status === "error";
-  const successMessage = state.message ?? "Автомобиль успешно сохранён.";
-  const errorMessage = state.message ?? "Не удалось сохранить изменения. Попробуйте ещё раз.";
+  const successMessage = state.message ?? DEFAULT_SUCCESS_MESSAGE;
+  const errorMessage = state.message ?? DEFAULT_ERROR_MESSAGE;
 
   useEffect(() => {
     if ((showSuccess || showError) && messageRef.current) {
@@ -48,51 +59,94 @@ export function VehicleForm({ action, defaultValues = {}, submitLabel = "Сох�
           {errorMessage}
         </FormMessage>
       ) : null}
+
       <div className="grid gap-4 md:grid-cols-2">
-        <Field label="Название" name="title" defaultValue={defaultValues.title} required />
+        <Field label="Название объявления" name="title" defaultValue={defaultValues.title} required />
         <Field label="Марка" name="brand" defaultValue={defaultValues.brand} required />
         <Field label="Модель" name="model" defaultValue={defaultValues.model} required />
-        <SelectField label="Тип кузова" name="bodyType" options={BODY_TYPES} defaultValue={defaultValues.bodyType as string} />
+        <SelectField
+          label="Тип кузова"
+          name="bodyType"
+          options={BODY_TYPES.map((type) => ({ value: type, label: BODY_TYPE_LABELS[type] }))}
+          defaultValue={defaultValues.bodyType as string}
+        />
         <Field label="Год выпуска" name="year" type="number" defaultValue={defaultValues.year} required />
         <Field label="Пробег" name="mileage" type="number" defaultValue={defaultValues.mileage} />
-        <Field label="Цена (EUR)" name="priceEur" type="number" step="0.01" defaultValue={defaultValues.priceEur} required />
+        <Field label="Стоимость (EUR)" name="priceEur" type="number" step="0.01" defaultValue={defaultValues.priceEur} required />
         <SelectField
-          label="Страна"
+          label="Страна расположения"
           name="country"
-          options={COUNTRIES.map((c) => ({ value: c.code, label: `${c.code} - ${c.name}` }))}
+          options={COUNTRIES.map((c) => ({ value: c.code, label: `${c.code} — ${c.name}` }))}
           defaultValue={defaultValues.country as string}
         />
         <Field label="Город" name="city" defaultValue={defaultValues.city} />
-        <SelectField label="Тип топлива" name="fuelType" options={FUEL_TYPES} defaultValue={defaultValues.fuelType as string} />
         <SelectField
-          label="Коробка передач"
+          label="Тип топлива"
+          name="fuelType"
+          options={FUEL_TYPES.map((fuel) => ({ value: fuel, label: FUEL_TYPE_LABELS[fuel] }))}
+          defaultValue={defaultValues.fuelType as string}
+        />
+        <SelectField
+          label="Трансмиссия"
           name="transmission"
-          options={TRANSMISSIONS}
+          options={TRANSMISSIONS.map((transmission) => ({ value: transmission, label: TRANSMISSION_LABELS[transmission] }))}
           defaultValue={defaultValues.transmission as string}
         />
-        <Field label="Привод" name="driveType" defaultValue={defaultValues.driveType} />
+        <Field label="Тип привода" name="driveType" defaultValue={defaultValues.driveType} />
         <Field label="Объём двигателя (см³)" name="engineVolumeCc" type="number" defaultValue={defaultValues.engineVolumeCc} />
         <Field label="Мощность (л.с.)" name="powerHp" type="number" defaultValue={defaultValues.powerHp} />
       </div>
+
       <TextareaField label="Краткое описание" name="shortDescription" rows={3} defaultValue={defaultValues.shortDescription} />
-      <Field label="Ссылка на оригинальное объявление" name="originalListingUrl" type="url" defaultValue={defaultValues.originalListingUrl} />
-      <Field label="Ссылка на обложку" name="thumbnailUrl" type="url" defaultValue={defaultValues.thumbnailUrl} />
+      <Field
+        label="Ссылка на оригинальное объявление"
+        name="originalListingUrl"
+        type="url"
+        defaultValue={defaultValues.originalListingUrl}
+      />
+      <Field
+        label="Основное изображение (URL)"
+        name="thumbnailUrl"
+        type="url"
+        defaultValue={defaultValues.thumbnailUrl}
+      />
       <TextareaField
-        label="Галерея (по одной ссылке в строке, первая станет обложкой)"
+        label="Галерея (по одной ссылке на строку, первая — основное фото)"
         name="gallery"
         rows={4}
         defaultValue={defaultValues.gallery}
       />
-      <TextareaField label="Преимущества (по одному пункту в строке)" name="features" rows={4} defaultValue={defaultValues.features} />
-      <TextareaField label="Характеристики (формат: Название: значение)" name="specs" rows={4} defaultValue={defaultValues.specs} />
       <TextareaField
-        label="Рынки (ISO-коды через запятую)"
+        label="Особенности комплектации (по одному пункту на строку)"
+        name="features"
+        rows={4}
+        defaultValue={defaultValues.features}
+      />
+      <TextareaField
+        label="Технические характеристики (формат: Название: значение)"
+        name="specs"
+        rows={4}
+        defaultValue={defaultValues.specs}
+      />
+      <TextareaField
+        label="Рынки присутствия (коды стран через пробел или запятую)"
         name="markets"
         rows={2}
         defaultValue={defaultValues.markets}
       />
-      <TextareaField label="Логистика (формат: Этап|Описание|ETA)" name="logistics" rows={4} defaultValue={defaultValues.logistics} />
-      <TextareaField label="Документы (формат: Название|URL)" name="documents" rows={3} defaultValue={defaultValues.documents} />
+      <TextareaField
+        label="Этапы логистики (формат: Этап | описание | срок в днях)"
+        name="logistics"
+        rows={4}
+        defaultValue={defaultValues.logistics}
+      />
+      <TextareaField
+        label="Документы (формат: Название | URL)"
+        name="documents"
+        rows={3}
+        defaultValue={defaultValues.documents}
+      />
+
       {defaultValues.id ? <input type="hidden" name="id" value={String(defaultValues.id)} /> : null}
       <SubmitButton label={submitLabel} />
     </form>
@@ -108,7 +162,7 @@ function SubmitButton({ label }: { label: string }) {
       disabled={pending}
       className="inline-flex h-12 items-center justify-center rounded-full bg-brand-primary px-6 text-xs font-semibold text-white transition hover:bg-brand-primary-strong disabled:cursor-not-allowed disabled:bg-brand-primary/50 disabled:text-white/70"
     >
-      {pending ? "Сохраняем..." : label}
+      {pending ? "Сохраняем…" : label}
     </button>
   );
 }
@@ -177,7 +231,7 @@ function SelectField({ label, name, options, defaultValue }: { label: string; na
         className="h-11 w-full rounded-full border border-white/15 bg-black/30 px-4 text-sm text-white focus:border-brand-primary focus:outline-none"
       >
         <option value="" className="bg-black">
-          --
+          —
         </option>
         {options.map((option) => {
           const normalized = typeof option === "string" ? { value: option, label: option } : option;

@@ -22,20 +22,20 @@ export default async function LoginPage({
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-[480px] flex-col justify-center gap-6 px-6 text-white">
       <div className="space-y-2 text-center">
-        <h1 className="text-3xl font-semibold text-white">Sign in to the B.I.C. admin</h1>
+        <h1 className="text-3xl font-semibold text-white">Вход в админ-панель B.I.C.</h1>
         <p className="text-sm text-white/60">
-          Use your corporate email and admin password to access the control panel.
+          Используйте корпоративную почту и админский пароль, чтобы получить доступ к панели управления.
         </p>
       </div>
       {showError ? (
         <div className="rounded-[28px] border border-red-500/40 bg-red-500/15 px-4 py-3 text-sm text-red-100">
-          Invalid email or password. Check the credentials and try again.
+          Неверная почта или пароль. Проверьте данные и попробуйте ещё раз.
         </div>
       ) : null}
       <form action={loginAction} className="space-y-4 rounded-[32px] border border-white/10 bg-white/6 p-6">
         <div className="space-y-2">
           <label className="text-xs text-white/55" htmlFor="email">
-            Email
+            Почта
           </label>
           <input
             id="email"
@@ -48,7 +48,7 @@ export default async function LoginPage({
         </div>
         <div className="space-y-2">
           <label className="text-xs text-white/55" htmlFor="password">
-            Password
+            Пароль
           </label>
           <input
             id="password"
@@ -56,11 +56,11 @@ export default async function LoginPage({
             type="password"
             required
             className="h-12 w-full rounded-full border border-white/15 bg-black/40 px-5 text-sm text-white placeholder:text-white/40 focus:border-brand-primary focus:outline-none"
-            placeholder="Enter your password"
+            placeholder="Введите пароль"
           />
         </div>
         <Button type="submit" className="w-full">
-          Sign in
+          Войти
         </Button>
       </form>
     </div>

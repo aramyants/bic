@@ -1,4 +1,4 @@
-"use server";
+﻿"use server";
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -97,7 +97,7 @@ const parseLogistics = (value?: string | null) =>
 const parseDocuments = (value?: string | null) =>
   parseList(value).map((line) => {
     const [title, url] = line.split("|");
-    return { title: (title?.trim() ?? "") || "Document", url: url?.trim() ?? "" };
+    return { title: (title?.trim() ?? "") || "Документ", url: url?.trim() ?? "" };
   });
 
 export type VehicleActionState = {
@@ -127,7 +127,7 @@ export async function createVehicleAction(
   if (!parsedResult.success) {
     return {
       status: "error",
-      message: "Проверьте заполненные поля и повторите попытку.",
+      message: "Проверьте заполненные поля и повторите попытку."
     };
   }
 
@@ -243,7 +243,7 @@ export async function createVehicleAction(
     console.error("[vehicles-admin] failed to create vehicle", error);
     return {
       status: "error",
-      message: "Не удалось сохранить автомобиль. Попробуйте ещё раз.",
+      message: "Не удалось сохранить автомобиль. Попробуйте ещё раз."
     };
   }
 
@@ -252,7 +252,7 @@ export async function createVehicleAction(
 
   return {
     status: "success",
-    message: "Автомобиль успешно создан.",
+    message: "Автомобиль успешно создан."
   };
 }
 
@@ -266,7 +266,7 @@ export async function updateVehicleAction(
   if (!id) {
     return {
       status: "error",
-      message: "Не указан идентификатор автомобиля.",
+      message: "Не указан идентификатор автомобиля."
     };
   }
 
@@ -274,7 +274,7 @@ export async function updateVehicleAction(
   if (!parsedResult.success) {
     return {
       status: "error",
-      message: "Проверьте заполненные поля и повторите попытку.",
+      message: "Проверьте заполненные поля и повторите попытку."
     };
   }
 
@@ -282,7 +282,7 @@ export async function updateVehicleAction(
   if (!existing) {
     return {
       status: "error",
-      message: "Автомобиль не найден — возможно, он уже удалён.",
+      message: "Автомобиль не найден — возможно, он уже удалён."
     };
   }
 
@@ -397,7 +397,7 @@ export async function updateVehicleAction(
     console.error("[vehicles-admin] failed to update vehicle", error);
     return {
       status: "error",
-      message: "Не удалось сохранить изменения. Попробуйте ещё раз.",
+      message: "Не удалось сохранить изменения. Попробуйте ещё раз."
     };
   }
 
@@ -407,7 +407,7 @@ export async function updateVehicleAction(
 
   return {
     status: "success",
-    message: "Автомобиль успешно обновлён.",
+    message: "Автомобиль успешно обновлён."
   };
 }
 

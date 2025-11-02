@@ -22,7 +22,7 @@ export const FavoritesView: React.FC<FavoritesViewProps> = ({ vehicles, eurRubRa
   if (filtered.length === 0) {
     return (
       <div className="rounded-[36px] border border-white/10 bg-white/5 p-10 text-center text-sm text-white/60">
-        Добавьте автомобили в избранное. Воспользуйтесь карточками в каталоге.
+        Здесь пока пусто. Добавьте автомобили в избранное, чтобы сравнивать предложения и возвращаться к ним позже.
       </div>
     );
   }
@@ -35,4 +35,3 @@ export const FavoritesView: React.FC<FavoritesViewProps> = ({ vehicles, eurRubRa
     </div>
   );
 };
-

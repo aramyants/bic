@@ -1,29 +1,29 @@
-﻿export const COUNTRIES: { code: string; name: string }[] = [
-  { code: "DE", name: "Germany" },
-  { code: "PL", name: "Poland" },
-  { code: "LT", name: "Lithuania" },
-  { code: "LV", name: "Latvia" },
-  { code: "EE", name: "Estonia" },
-  { code: "FI", name: "Finland" },
-  { code: "SE", name: "Sweden" },
-  { code: "NL", name: "Netherlands" },
-  { code: "BE", name: "Belgium" },
-  { code: "FR", name: "France" },
-  { code: "IT", name: "Italy" },
-  { code: "ES", name: "Spain" },
-  { code: "PT", name: "Portugal" },
-  { code: "HU", name: "Hungary" },
-  { code: "CZ", name: "Czechia" },
-  { code: "SK", name: "Slovakia" },
-  { code: "SI", name: "Slovenia" },
-  { code: "RO", name: "Romania" },
-  { code: "BG", name: "Bulgaria" },
-  { code: "HR", name: "Croatia" },
-  { code: "GR", name: "Greece" },
-  { code: "AE", name: "UAE" },
-  { code: "CN", name: "China" },
-  { code: "JP", name: "Japan" },
-  { code: "KR", name: "South Korea" },
+export const COUNTRIES: { code: string; name: string }[] = [
+  { code: "DE", name: "Германия" },
+  { code: "PL", name: "Польша" },
+  { code: "LT", name: "Литва" },
+  { code: "LV", name: "Латвия" },
+  { code: "EE", name: "Эстония" },
+  { code: "FI", name: "Финляндия" },
+  { code: "SE", name: "Швеция" },
+  { code: "NL", name: "Нидерланды" },
+  { code: "BE", name: "Бельгия" },
+  { code: "FR", name: "Франция" },
+  { code: "IT", name: "Италия" },
+  { code: "ES", name: "Испания" },
+  { code: "PT", name: "Португалия" },
+  { code: "HU", name: "Венгрия" },
+  { code: "CZ", name: "Чехия" },
+  { code: "SK", name: "Словакия" },
+  { code: "SI", name: "Словения" },
+  { code: "RO", name: "Румыния" },
+  { code: "BG", name: "Болгария" },
+  { code: "HR", name: "Хорватия" },
+  { code: "GR", name: "Греция" },
+  { code: "AE", name: "ОАЭ" },
+  { code: "CN", name: "Китай" },
+  { code: "JP", name: "Япония" },
+  { code: "KR", name: "Южная Корея" },
 ];
 
 export const BODY_TYPES = [
@@ -38,8 +38,67 @@ export const BODY_TYPES = [
   "Convertible",
   "Crossover Coupe",
   "Van",
-];
+] as const;
 
-export const TRANSMISSIONS = ["Automatic", "Manual", "DCT", "CVT"];
-export const DRIVE_TYPES = ["AWD", "RWD", "FWD"];
-export const FUEL_TYPES = ["Petrol", "Diesel", "Hybrid", "Electric", "LPG"];
+export const BODY_TYPE_LABELS: Record<(typeof BODY_TYPES)[number], string> = {
+  Sedan: "Седан",
+  Coupe: "Купе",
+  SUV: "Внедорожник",
+  Wagon: "Универсал",
+  Liftback: "Лифтбек",
+  Hatchback: "Хэтчбек",
+  Minivan: "Минивэн",
+  Pickup: "Пикап",
+  Convertible: "Кабриолет",
+  "Crossover Coupe": "Кроссовер купе",
+  Van: "Фургон",
+};
+
+export const TRANSMISSIONS = ["Automatic", "Manual", "DCT", "CVT"] as const;
+export const TRANSMISSION_LABELS: Record<(typeof TRANSMISSIONS)[number], string> = {
+  Automatic: "Автомат",
+  Manual: "Механика",
+  DCT: "Робот (DCT)",
+  CVT: "Вариатор (CVT)",
+};
+
+export const DRIVE_TYPES = ["AWD", "RWD", "FWD"] as const;
+export const DRIVE_TYPE_LABELS: Record<(typeof DRIVE_TYPES)[number], string> = {
+  AWD: "Полный привод",
+  RWD: "Задний привод",
+  FWD: "Передний привод",
+};
+
+export const FUEL_TYPES = ["Petrol", "Diesel", "Hybrid", "Electric", "LPG"] as const;
+export const FUEL_TYPE_LABELS: Record<(typeof FUEL_TYPES)[number], string> = {
+  Petrol: "Бензин",
+  Diesel: "Дизель",
+  Hybrid: "Гибрид",
+  Electric: "Электро",
+  LPG: "ГБО",
+};
+
+export const UNIT_LABELS = {
+  km: "км",
+  KM: "км",
+  mi: "мили",
+  MI: "мили",
+} as const;
+
+export function getBodyTypeLabel(value?: string | null) {
+  return value && value in BODY_TYPE_LABELS ? BODY_TYPE_LABELS[value as keyof typeof BODY_TYPE_LABELS] : value ?? "-";
+}
+
+export function getFuelTypeLabel(value?: string | null) {
+  return value && value in FUEL_TYPE_LABELS ? FUEL_TYPE_LABELS[value as keyof typeof FUEL_TYPE_LABELS] : value ?? "-";
+}
+
+export function getTransmissionLabel(value?: string | null) {
+  return value && value in TRANSMISSION_LABELS
+    ? TRANSMISSION_LABELS[value as keyof typeof TRANSMISSION_LABELS]
+    : value ?? "-";
+}
+
+export function getDriveTypeLabel(value?: string | null) {
+  return value && value in DRIVE_TYPE_LABELS ? DRIVE_TYPE_LABELS[value as keyof typeof DRIVE_TYPE_LABELS] : value ?? "-";
+}

@@ -1,9 +1,9 @@
-import Link from "next/link";
+﻿import Link from "next/link";
 
 import { CatalogFilters } from "@/components/catalog-filters";
 import { Badge } from "@/components/ui/badge";
 import { VehicleCard } from "@/components/vehicle-card";
-import { COUNTRIES, BODY_TYPES, FUEL_TYPES, TRANSMISSIONS } from "@/lib/constants";
+import { BODY_TYPES, COUNTRIES, FUEL_TYPES, TRANSMISSIONS } from "@/lib/constants";
 import { formatLocaleNumber } from "@/lib/utils";
 import { getVehicles } from "@/server/vehicle-service";
 import { getEurRubRate } from "@/server/exchange-service";
@@ -12,38 +12,30 @@ const copy = {
   badge: "Каталог",
   title: "Каталог B.I.C.",
   subtitle:
-    "Подбираем премиальные импортные автомобили по миру, проверяем историю и состояние, организуем доставку и растаможку.",
-  summaryPrefix: "Доступно",
-  summarySuffix: "предложений",
-  sort: "Сортировка: нет",
+    "Отбираем проверенные автомобили у надёжных партнёров, берём на себя переговоры, сопровождение сделки и доставку под ключ.",
+  summaryPrefix: "Найдено",
+  summarySuffix: "объявлений",
+  sort: "Используйте фильтры, чтобы быстрее найти нужное авто",
   favorites: "Избранное",
-  empty:
-    "Мы не нашли автомобили по текущим фильтрам. Сбросьте часть параметров или попробуйте другие запросы.",
+  empty: "По текущим фильтрам ничего не найдено. Попробуйте изменить условия поиска или сбросьте фильтры, чтобы увидеть больше предложений.",
 } as const;
 
 type SearchParamRecord = Record<string, string | string[] | undefined>;
 
-export default async function CatalogPage({
-  searchParams,
-}: {
-  searchParams: Promise<SearchParamRecord>;
-}) {
+export default async function CatalogPage({ searchParams }: { searchParams: Promise<SearchParamRecord> }) {
   const resolvedSearchParams = await searchParams;
   const filters = parseFilters(resolvedSearchParams);
-  const [vehicles, eurRubRate] = await Promise.all([
-    getVehicles(filters),
-    getEurRubRate().catch(() => 100),
-  ]);
+  const [vehicles, eurRubRate] = await Promise.all([getVehicles(filters), getEurRubRate().catch(() => 100)]);
 
   return (
-    <div className="mx-auto w-full max-w-[1320px] space-y-12">
+    <div className="mx-auto w-full max-w-[1320px] space-y-12 text-white">
       <header className="space-y-4 pt-10">
-        <Badge tone="outline" className="tracking-[0.1em]">
+        <Badge tone="outline" className="tracking-[0.1em] text-white/70">
           {copy.badge}
         </Badge>
         <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
           <div>
-            <h1 className="text-4xl font-semibold text-white">{copy.title}</h1>
+            <h1 className="text-4xl font-semibold">{copy.title}</h1>
             <p className="mt-2 max-w-2xl text-sm text-white/70">{copy.subtitle}</p>
           </div>
           <div className="text-xs uppercase tracking-[0.1em] text-white/50">

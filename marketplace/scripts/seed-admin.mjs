@@ -1,42 +1,45 @@
 import "dotenv/config";
-import path from "node:path";
-import Database from "better-sqlite3";
 import bcrypt from "bcryptjs";
+import { Client } from "pg";
 
-const resolveDatabasePath = () => {
-  const envPath = process.env.DATABASE_PATH;
-  if (!envPath) {
-    return path.join(process.cwd(), "sqlite", "bic.db");
-  }
-  return path.isAbsolute(envPath)
-    ? envPath
-    : path.join(process.cwd(), envPath);
-};
-
-const databasePath = resolveDatabasePath();
+const connectionString = process.env.DATABASE_URL;
 const email = process.env.ADMIN_EMAIL;
 const password = process.env.ADMIN_DEFAULT_PASSWORD;
+
+if (!connectionString) {
+  console.error("DATABASE_URL must be set in .env");
+  process.exit(1);
+}
 
 if (!email || !password) {
   console.error("ADMIN_EMAIL and ADMIN_DEFAULT_PASSWORD must be set in .env");
   process.exit(1);
 }
 
-const db = new Database(databasePath);
-db.pragma("foreign_keys = ON");
+const client = new Client({ connectionString });
+await client.connect();
 
-const existing = db.prepare("SELECT id FROM users WHERE email = ?").get(email);
-const hashed = await bcrypt.hash(password, 12);
+try {
+  const hashed = await bcrypt.hash(password, 12);
+  const { rowCount } = await client.query("SELECT 1 FROM users WHERE email = $1", [email]);
 
-if (!existing) {
-  db.prepare(
-    `INSERT INTO users (email, name, password_hash, role)
-     VALUES (?, ?, ?, 'admin')`
-  ).run(email, "BIC Admin", hashed);
-  console.log(`Created admin user ${email}`);
-} else {
-  db.prepare(`UPDATE users SET password_hash = ?, updated_at = datetime('now') WHERE email = ?`).run(hashed, email);
-  console.log(`Updated admin password for ${email}`);
+  if (rowCount === 0) {
+    await client.query(
+      `INSERT INTO users (email, name, password_hash, role)
+       VALUES ($1, $2, $3, 'admin')`,
+      [email, "BIC Admin", hashed],
+    );
+    console.log(`Created admin user ${email}`);
+  } else {
+    await client.query(
+      `UPDATE users
+         SET password_hash = $1,
+             updated_at = NOW()
+       WHERE email = $2`,
+      [hashed, email],
+    );
+    console.log(`Updated admin password for ${email}`);
+  }
+} finally {
+  await client.end();
 }
-
-db.close();

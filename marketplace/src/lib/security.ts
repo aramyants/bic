@@ -34,6 +34,7 @@ export const getExpiryDate = (days: number = TOKEN_TTL_DAYS) => {
   return expires;
 };
 
-export const isExpired = (isoDate: string) => {
-  return new Date(isoDate).getTime() < Date.now();
+export const isExpired = (input: string | Date) => {
+  const timestamp = input instanceof Date ? input.getTime() : new Date(input).getTime();
+  return Number.isNaN(timestamp) ? true : timestamp < Date.now();
 };

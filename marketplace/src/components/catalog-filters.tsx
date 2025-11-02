@@ -6,6 +6,7 @@ import { SlidersHorizontal } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { BODY_TYPE_LABELS, FUEL_TYPE_LABELS, TRANSMISSION_LABELS } from "@/lib/constants";
 
 interface CatalogFiltersProps {
   bodyTypes: string[];
@@ -114,7 +115,7 @@ export const CatalogFilters: React.FC<CatalogFiltersProps> = ({ bodyTypes, fuelT
         {bodyTypes.map((item) => (
           <CheckboxRow
             key={item}
-            label={item}
+            label={BODY_TYPE_LABELS[item as keyof typeof BODY_TYPE_LABELS] ?? item}
             checked={selectedBodyTypes.has(item)}
             onChange={() => toggleValue("bodyTypes", item)}
           />
@@ -125,7 +126,7 @@ export const CatalogFilters: React.FC<CatalogFiltersProps> = ({ bodyTypes, fuelT
         {fuelTypes.map((item) => (
           <CheckboxRow
             key={item}
-            label={item}
+            label={FUEL_TYPE_LABELS[item as keyof typeof FUEL_TYPE_LABELS] ?? item}
             checked={selectedFuelTypes.has(item)}
             onChange={() => toggleValue("fuelTypes", item)}
           />
@@ -136,7 +137,7 @@ export const CatalogFilters: React.FC<CatalogFiltersProps> = ({ bodyTypes, fuelT
         {transmissions.map((item) => (
           <CheckboxRow
             key={item}
-            label={item}
+            label={TRANSMISSION_LABELS[item as keyof typeof TRANSMISSION_LABELS] ?? item}
             checked={selectedTransmissions.has(item)}
             onChange={() => toggleValue("transmission", item)}
           />
@@ -190,17 +191,17 @@ export const CatalogFilters: React.FC<CatalogFiltersProps> = ({ bodyTypes, fuelT
       <div className="flex flex-wrap gap-2">
         {Array.from(selectedBodyTypes).map((item) => (
           <Badge key={`body-${item}`} tone="outline" className="cursor-pointer" onClick={() => toggleValue("bodyTypes", item)}>
-            {item}
+            {BODY_TYPE_LABELS[item as keyof typeof BODY_TYPE_LABELS] ?? item}
           </Badge>
         ))}
         {Array.from(selectedFuelTypes).map((item) => (
           <Badge key={`fuel-${item}`} tone="outline" className="cursor-pointer" onClick={() => toggleValue("fuelTypes", item)}>
-            {item}
+            {FUEL_TYPE_LABELS[item as keyof typeof FUEL_TYPE_LABELS] ?? item}
           </Badge>
         ))}
         {Array.from(selectedTransmissions).map((item) => (
           <Badge key={`trans-${item}`} tone="outline" className="cursor-pointer" onClick={() => toggleValue("transmission", item)}>
-            {item}
+            {TRANSMISSION_LABELS[item as keyof typeof TRANSMISSION_LABELS] ?? item}
           </Badge>
         ))}
         {Array.from(selectedCountries).map((item) => (

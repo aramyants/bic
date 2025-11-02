@@ -1,35 +1,25 @@
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-import path from "node:path";
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
 
 import * as schema from "./schema";
 
-const resolveDatabasePath = () => {
-  const envPath = process.env.DATABASE_PATH;
-  if (!envPath) {
-    return path.join(process.cwd(), "sqlite", "bic.db");
-  }
+const connectionString = process.env.DATABASE_URL;
 
-  return path.isAbsolute(envPath)
-    ? envPath
-    : path.join(process.cwd(), envPath);
-};
+if (!connectionString) {
+  throw new Error("DATABASE_URL environment variable is not set");
+}
 
-const databasePath = resolveDatabasePath();
+declare global {
+  // eslint-disable-next-line no-var
+  var __dbPool: Pool | undefined;
+}
 
-export const sqlite = new Database(databasePath, {
-  fileMustExist: false,
-  verbose: undefined,
-});
+const pool = globalThis.__dbPool ?? new Pool({ connectionString });
 
-export const db = drizzle(sqlite, { schema });
+if (process.env.NODE_ENV !== "production") {
+  globalThis.__dbPool = pool;
+}
 
-export const runMigrations = () => {
-  try {
-    migrate(db, { migrationsFolder: path.join(process.cwd(), "drizzle") });
-  } catch (error) {
-    console.error("[drizzle] migration failed", error);
-    throw error;
-  }
-};
+export const db = drizzle(pool, { schema });
+
+export { pool };

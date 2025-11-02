@@ -8,7 +8,7 @@ import { InfoTooltip } from "@/components/info-tooltip";
 import { Badge } from "@/components/ui/badge";
 import { VehicleGallery } from "@/components/vehicle-gallery";
 import { COUNTRIES } from "@/lib/constants";
-import { formatCurrency, formatLocaleNumber } from "@/lib/utils";
+import { cn, formatCurrency, formatLocaleNumber } from "@/lib/utils";
 import { computeCostBreakdown, getVehicleBySlug } from "@/server/vehicle-service";
 import { getEurRubRate } from "@/server/exchange-service";
 
@@ -100,7 +100,10 @@ export default async function VehiclePage({
           <div className="flex flex-wrap items-center gap-3">
             <Link
               href={vehicle.originalListingUrl ?? "#"}
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-brand-primary px-6 text-xs font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-brand-primary-strong"
+              className={cn(
+                "inline-flex h-12 items-center justify-center gap-2 rounded-full bg-brand-primary px-6 text-xs font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-brand-primary-strong",
+                !vehicle.originalListingUrl && "pointer-events-none opacity-60",
+              )}
               target="_blank"
               rel="noopener noreferrer"
             >

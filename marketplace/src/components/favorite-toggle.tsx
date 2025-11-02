@@ -15,7 +15,7 @@ export const FavoriteToggle: React.FC<{ vehicleId: string }> = ({ vehicleId }) =
       type="button"
       onClick={() => toggleFavorite(vehicleId)}
       className={cn(
-        "flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs text-white/60 transition",
+        "flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs text-white/60 transition hover:border-white/40 hover:text-white",
         fav && "border-brand-primary bg-brand-primary/20 text-white",
       )}
     >
@@ -24,4 +24,3 @@ export const FavoriteToggle: React.FC<{ vehicleId: string }> = ({ vehicleId }) =
     </button>
   );
 };
-
