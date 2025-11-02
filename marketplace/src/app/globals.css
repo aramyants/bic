@@ -1,0 +1,62 @@
+﻿@import "tailwindcss";
+
+:root {
+  --background: #0d0d0d;
+  --foreground: #f5f5f5;
+  --brand-primary: #ec0c0c;
+  --brand-primary-strong: #ff3535;
+  --brand-secondary: #1b1b1f;
+  --brand-surface: #141417;
+  --brand-muted: #9ea0a8;
+  --brand-outline: rgba(236, 12, 12, 0.35);
+  --brand-warning: #fbbf24;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-brand-primary: var(--brand-primary);
+  --color-brand-primary-strong: var(--brand-primary-strong);
+  --color-brand-secondary: var(--brand-secondary);
+  --color-brand-surface: var(--brand-surface);
+  --color-brand-muted: var(--brand-muted);
+  --color-brand-outline: var(--brand-outline);
+  --color-brand-warning: var(--brand-warning);
+  --font-sans: var(--font-onest), "Onest", system-ui, sans-serif;
+  --font-body: var(--font-inter), "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --radius-sm: 0.5rem;
+  --radius-md: 1.5rem;
+  --radius-lg: 2.75rem;
+  --shadow-soft: 0 20px 40px rgba(10, 10, 10, 0.35);
+  --shadow-strong: 0 32px 60px rgba(12, 12, 12, 0.45);
+  --shadow-glow: 0 0 0 1px rgba(236, 12, 12, 0.35);
+}
+
+body {
+  background: radial-gradient(circle at top left, rgba(236, 12, 12, 0.12), transparent 45%), var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+[class*="tracking-"] {
+  letter-spacing: 0 !important;
+}
+
+button,
+[type="button"],
+[type="submit"],
+[type="reset"] {
+  cursor: pointer;
+}
+
+a {
+  text-decoration: none;
+}
+
+::selection {
+  background: rgba(236, 12, 12, 0.25);
+  color: #ffffff;
+}
