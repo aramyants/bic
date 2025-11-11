@@ -48,7 +48,7 @@ export default async function LandingPage({
 
 function HeroSection({ eurRubRate }: { eurRubRate: number }) {
   return (
-    <section className="relative mx-auto mt-12 flex w-full max-w-[1320px] flex-col overflow-hidden rounded-[52px] border border-white/10 bg-gradient-to-br from-black/85 via-black/60 to-brand-secondary/80 px-8 py-16 text-white shadow-strong lg:flex-row lg:items-center lg:px-16 lg:py-24">
+    <section className="relative mx-auto mt-12 flex w-full max-w-[1400px] flex-col overflow-hidden rounded-[52px] border border-white/10 bg-gradient-to-br from-black/85 via-black/60 to-brand-secondary/80 px-8 py-16 text-white shadow-strong lg:flex-row lg:items-center lg:px-16 lg:py-24">
       <div className="flex-1 space-y-8">
         <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-xs text-white/70">
           <span>Маркетплейс параллельного импорта</span>
@@ -56,7 +56,7 @@ function HeroSection({ eurRubRate }: { eurRubRate: number }) {
           <span>24/7 · 25 стран</span>
         </div>
         <h1 className="text-4xl font-semibold leading-tight text-white md:text-6xl">
-          B.I.C. — подбор и поставка автомобилей и мототехники по курсу ЦБ РФ
+          B.I.C. подбор и поставка автомобилей и мототехники
         </h1>
         <p className="max-w-2xl text-lg text-white/70">
           Комплексно сопровождаем покупку и доставку авто из Европы, Азии и США. Предоставляем прозрачный расчёт, проверяем

@@ -50,10 +50,7 @@ export const SiteHeader: React.FC = () => {
               priority
               unoptimized
             />
-            <div className="hidden flex-col leading-tight md:flex">
-              <span className="text-sm font-semibold uppercase text-white/60">B.I.C.</span>
-              <span className="text-sm font-medium text-white/90">best imported cars</span>
-            </div>
+
           </Link>
         </div>
 
@@ -66,7 +63,7 @@ export const SiteHeader: React.FC = () => {
         </nav>
 
         <div className="hidden items-center gap-4 xl:flex">
-          <div className="text-xs text-white/55">{SERVICE_STRIP}</div>
+          <div className="text-xs text-white/55">{}</div>
           <Link
             href="#request"
             className="inline-flex h-10 items-center justify-center rounded-full bg-brand-primary px-6 text-xs font-semibold text-white transition hover:bg-brand-primary-strong"

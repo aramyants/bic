@@ -1,4 +1,4 @@
-﻿import { redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { getCurrentAdmin } from "@/server/auth";
@@ -24,18 +24,18 @@ export default async function LoginPage({
       <div className="space-y-2 text-center">
         <h1 className="text-3xl font-semibold text-white">Вход в админ-панель B.I.C.</h1>
         <p className="text-sm text-white/60">
-          Используйте корпоративную почту и админский пароль, чтобы получить доступ к панели управления.
+          Используйте учётную запись администратора, чтобы управлять каталогом, заявками и настройками площадки.
         </p>
       </div>
       {showError ? (
         <div className="rounded-[28px] border border-red-500/40 bg-red-500/15 px-4 py-3 text-sm text-red-100">
-          Неверная почта или пароль. Проверьте данные и попробуйте ещё раз.
+          Неверный email или пароль. Проверьте данные и попробуйте ещё раз.
         </div>
       ) : null}
       <form action={loginAction} className="space-y-4 rounded-[32px] border border-white/10 bg-white/6 p-6">
         <div className="space-y-2">
           <label className="text-xs text-white/55" htmlFor="email">
-            Почта
+            Email
           </label>
           <input
             id="email"

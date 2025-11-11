@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 
 import { requireAdmin } from "@/server/auth";
 import { signOutAction } from "@/server/auth-actions";
@@ -9,7 +9,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   return (
     <div className="min-h-screen bg-black text-white">
       <header className="border-b border-white/10 bg-black/70">
-        <div className="mx-auto flex w-full max-w-[1320px] items-center justify-between px-6 py-4">
+        <div className="mx-auto flex w/full max-w-[1320px] items-center justify-between px-6 py-4">
           <Link href="/admin" className="text-sm font-semibold text-white/70">
             B.I.C. Admin
           </Link>

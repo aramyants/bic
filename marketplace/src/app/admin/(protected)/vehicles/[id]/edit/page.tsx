@@ -1,4 +1,4 @@
-﻿import { notFound } from "next/navigation";
+import { notFound } from "next/navigation";
 
 import { VehicleForm } from "@/components/admin/vehicle-form";
 import { getVehicleById } from "@/server/vehicle-service";
@@ -32,14 +32,12 @@ export default async function EditVehiclePage({ params }: { params: RouteParams 
     shortDescription: vehicle.shortDescription ?? "",
     originalListingUrl: vehicle.originalListingUrl ?? "",
     thumbnailUrl: vehicle.thumbnailUrl ?? "",
-    gallery: vehicle.gallery.map((img) => img.url).join("`n"),
-    features: vehicle.features.map((feature) => feature.label).join("`n"),
-    specs: vehicle.specifications.map((spec) => `${spec.label}: ${spec.value}`).join("`n"),
+    gallery: vehicle.gallery.map((img) => img.url).join("\n"),
+    features: vehicle.features.map((feature) => feature.label).join("\n"),
+    specs: vehicle.specifications.map((spec) => `${spec.label}: ${spec.value}`).join("\n"),
     markets: vehicle.markets.map((market) => market.countryCode).join(", "),
-    logistics: vehicle.logistics
-      .map((step) => `${step.label}|${step.description ?? ""}|${step.etaDays ?? ""}`)
-      .join("`n"),
-    documents: vehicle.documents.map((doc) => `${doc.title}|${doc.url}`).join("`n"),
+    logistics: vehicle.logistics.map((step) => `${step.label}|${step.description ?? ""}|${step.etaDays ?? ""}`).join("\n"),
+    documents: vehicle.documents.map((doc) => `${doc.title}|${doc.url}`).join("\n"),
   } as Record<string, string | number>;
 
   return (
