@@ -7,6 +7,7 @@ import { SlidersHorizontal } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { BODY_TYPE_LABELS, FUEL_TYPE_LABELS, TRANSMISSION_LABELS } from "@/lib/constants";
+<<<<<<< ours
 
 interface CatalogFiltersProps {
   bodyTypes: string[];
@@ -140,6 +141,441 @@ export const CatalogFilters: React.FC<CatalogFiltersProps> = ({ bodyTypes, fuelT
             label={TRANSMISSION_LABELS[item as keyof typeof TRANSMISSION_LABELS] ?? item}
             checked={selectedTransmissions.has(item)}
             onChange={() => toggleValue("transmission", item)}
+=======
+import { cn, formatCurrency } from "@/lib/utils";
+
+type Range = { min: number; max: number };
+
+export type CatalogFacetConfig = {
+  brands: string[];
+  modelsByBrand: Record<string, string[]>;
+  bodyTypes: string[];
+  fuelTypes: string[];
+  transmissions: string[];
+  countries: { code: string; name: string }[];
+  colors: string[];
+  priceRange: Range;
+  yearRange: Range;
+  mileageRange: Range;
+  engineRange: Range;
+  powerRange: Range;
+};
+
+type FilterState = {
+  search: string;
+  brand: string;
+  model: string;
+  bodyTypes: string[];
+  fuelTypes: string[];
+  transmissions: string[];
+  countries: string[];
+  colors: string[];
+  yearFrom?: number;
+  yearTo?: number;
+  mileageFrom?: number;
+  mileageTo?: number;
+  priceMin?: number;
+  priceMax?: number;
+  priceCurrency: "EUR" | "RUB";
+  engineFrom?: number;
+  engineTo?: number;
+  powerFrom?: number;
+  powerTo?: number;
+};
+
+const emptyState: FilterState = {
+  search: "",
+  brand: "",
+  model: "",
+  bodyTypes: [],
+  fuelTypes: [],
+  transmissions: [],
+  countries: [],
+  colors: [],
+  priceCurrency: "EUR",
+};
+
+const toFlag = (code: string) =>
+  code
+    .toUpperCase()
+    .replace(/./g, (char) => String.fromCodePoint(127397 + char.charCodeAt(0)));
+
+const parseNumber = (value?: string | null) => {
+  if (!value) return undefined;
+  const num = Number.parseFloat(value);
+  return Number.isFinite(num) ? num : undefined;
+};
+
+const parseList = (value?: string | string[] | null) => {
+  if (!value) return [] as string[];
+  const raw = Array.isArray(value) ? value : [value];
+  return raw.flatMap((item) => item.split(".")).filter(Boolean);
+};
+
+export function CatalogFilters({ facets, eurRubRate }: { facets: CatalogFacetConfig; eurRubRate: number }) {
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
+  const router = useRouter();
+  const [pending, startTransition] = React.useTransition();
+  const [collapsed, setCollapsed] = React.useState(true);
+
+  const initialState = React.useMemo<FilterState>(() => {
+    const currencyParam = searchParams.get("priceCurrency");
+    const priceCurrency = currencyParam === "RUB" ? "RUB" : "EUR";
+    const priceMinEur = parseNumber(searchParams.get("priceMin"));
+    const priceMaxEur = parseNumber(searchParams.get("priceMax"));
+    const toDisplayPrice = (value?: number) =>
+      value === undefined ? undefined : priceCurrency === "RUB" ? Math.round(value * eurRubRate) : value;
+
+    return {
+      ...emptyState,
+      priceCurrency,
+      search: searchParams.get("search") ?? "",
+      brand: searchParams.get("brand") ?? "",
+      model: searchParams.get("model") ?? "",
+      bodyTypes: parseList(searchParams.get("bodyTypes")),
+      fuelTypes: parseList(searchParams.get("fuelTypes")),
+      transmissions: parseList(searchParams.get("transmissions")),
+      countries: parseList(searchParams.get("countries")),
+      colors: parseList(searchParams.get("colors")),
+      yearFrom: parseNumber(searchParams.get("yearFrom")),
+      yearTo: parseNumber(searchParams.get("yearTo")),
+      mileageFrom: parseNumber(searchParams.get("mileageFrom")),
+      mileageTo: parseNumber(searchParams.get("mileageTo")),
+      priceMin: toDisplayPrice(priceMinEur),
+      priceMax: toDisplayPrice(priceMaxEur),
+      engineFrom: parseNumber(searchParams.get("engineFrom")),
+      engineTo: parseNumber(searchParams.get("engineTo")),
+      powerFrom: parseNumber(searchParams.get("powerFrom")),
+      powerTo: parseNumber(searchParams.get("powerTo")),
+    };
+  }, [eurRubRate, searchParams]);
+
+  const [state, setState] = React.useState<FilterState>(initialState);
+
+  React.useEffect(() => {
+    setState(initialState);
+  }, [initialState]);
+
+  const updateParamUrl = React.useCallback(
+    (next: FilterState) => {
+      const params = new URLSearchParams();
+      params.set("page", "1");
+
+      if (next.search.trim()) params.set("search", next.search.trim());
+      if (next.brand) params.set("brand", next.brand);
+      if (next.model) params.set("model", next.model);
+      const join = (list: string[]) => (list.length ? list.join(".") : null);
+      const setList = (key: string, value: string[]) => {
+        const str = join(value);
+        if (str) params.set(key, str);
+      };
+
+      setList("bodyTypes", next.bodyTypes);
+      setList("fuelTypes", next.fuelTypes);
+      setList("transmissions", next.transmissions);
+      setList("countries", next.countries);
+      setList("colors", next.colors);
+
+      if (next.yearFrom !== undefined) params.set("yearFrom", String(next.yearFrom));
+      if (next.yearTo !== undefined) params.set("yearTo", String(next.yearTo));
+      if (next.mileageFrom !== undefined) params.set("mileageFrom", String(next.mileageFrom));
+      if (next.mileageTo !== undefined) params.set("mileageTo", String(next.mileageTo));
+
+      const toEur = (value?: number) =>
+        value === undefined
+          ? undefined
+          : next.priceCurrency === "RUB"
+            ? Math.round(value / eurRubRate)
+            : value;
+
+      const minPriceEur = toEur(next.priceMin);
+      const maxPriceEur = toEur(next.priceMax);
+      if (minPriceEur !== undefined) params.set("priceMin", String(minPriceEur));
+      if (maxPriceEur !== undefined) params.set("priceMax", String(maxPriceEur));
+      params.set("priceCurrency", next.priceCurrency);
+
+      if (next.engineFrom !== undefined) params.set("engineFrom", String(next.engineFrom));
+      if (next.engineTo !== undefined) params.set("engineTo", String(next.engineTo));
+      if (next.powerFrom !== undefined) params.set("powerFrom", String(next.powerFrom));
+      if (next.powerTo !== undefined) params.set("powerTo", String(next.powerTo));
+
+      startTransition(() => {
+        router.push(`${pathname}?${params.toString()}`);
+      });
+    },
+    [eurRubRate, pathname, router, startTransition],
+  );
+
+  const handleApply = () => updateParamUrl(state);
+
+  const handleReset = () => {
+    setState({ ...emptyState });
+    startTransition(() => router.push(pathname));
+  };
+
+  const modelsForBrand = state.brand ? facets.modelsByBrand[state.brand] ?? [] : [];
+
+  return (
+    <section className="rounded-[32px] border border-white/10 bg-white/5 p-5 shadow-soft backdrop-blur-lg text-white">
+      <div className="flex flex-wrap items-center gap-3 pb-4">
+        <button
+          type="button"
+          className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-2 text-sm font-semibold hover:bg-white/15"
+          onClick={() => setCollapsed((prev) => !prev)}
+        >
+          <SlidersHorizontal className="h-4 w-4" />
+          <span>Фильтры</span>
+          <ChevronDown className={cn("h-4 w-4 transition", collapsed && "rotate-180")} />
+        </button>
+        <button
+          type="button"
+          className="inline-flex items-center gap-2 rounded-full border border-white/15 px-3 py-2 text-sm hover:bg-white/10"
+          onClick={handleReset}
+          disabled={pending}
+        >
+          <RotateCcw className="h-4 w-4" />
+          Сбросить
+        </button>
+        <div className="ml-auto flex items-center gap-2 text-xs text-white/60">
+          <span>Валюта:</span>
+          <div className="flex gap-2 rounded-full border border-white/10 bg-white/5 p-1">
+            {(["EUR", "RUB"] as const).map((currency) => (
+              <button
+                key={currency}
+                type="button"
+                className={cn(
+                  "rounded-full px-3 py-1 text-xs font-semibold transition",
+                  state.priceCurrency === currency ? "bg-white text-black" : "text-white/70 hover:text-white",
+                )}
+                onClick={() =>
+                  setState((prev) => {
+                    const convert = (value?: number) => {
+                      if (value === undefined) return undefined;
+                      if (currency === prev.priceCurrency) return value;
+                      return currency === "RUB"
+                        ? Math.round(value * eurRubRate)
+                        : Math.max(0, Math.round(value / eurRubRate));
+                    };
+                    return {
+                      ...prev,
+                      priceCurrency: currency,
+                      priceMin: convert(prev.priceMin),
+                      priceMax: convert(prev.priceMax),
+                    };
+                  })
+                }
+              >
+                {currency}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {!collapsed && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+            <LabeledInput
+              label="Поиск по названию"
+              icon={<Search className="h-4 w-4 text-white/50" />}
+              placeholder="Mercedes GLE, Cayenne..."
+              value={state.search}
+              onChange={(value) => setState((prev) => ({ ...prev, search: value }))}
+            />
+            <SelectField
+              label="Кузов"
+              value={state.bodyTypes[0] ?? ""}
+              onChange={(val) => setState((prev) => ({ ...prev, bodyTypes: val ? [val] : [] }))}
+              options={facets.bodyTypes}
+              labels={BODY_TYPE_LABELS}
+            />
+            <SelectField
+              label="Топливо"
+              value={state.fuelTypes[0] ?? ""}
+              onChange={(val) => setState((prev) => ({ ...prev, fuelTypes: val ? [val] : [] }))}
+              options={facets.fuelTypes}
+              labels={FUEL_TYPE_LABELS}
+            />
+            <SelectField
+              label="Коробка"
+              value={state.transmissions[0] ?? ""}
+              onChange={(val) => setState((prev) => ({ ...prev, transmissions: val ? [val] : [] }))}
+              options={facets.transmissions}
+              labels={TRANSMISSION_LABELS}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
+            <CountrySelect
+              label="Страна"
+              countries={facets.countries}
+              value={state.countries[0] ?? ""}
+              onChange={(val) => setState((prev) => ({ ...prev, countries: val ? [val] : [] }))}
+            />
+            <ColorPicker
+              label="Цвет"
+              colors={facets.colors}
+              value={state.colors[0]}
+              onChange={(val) => setState((prev) => ({ ...prev, colors: val ? [val] : [] }))}
+            />
+            <SelectField
+              label="Бренд"
+              value={state.brand}
+              onChange={(val) => setState((prev) => ({ ...prev, brand: val, model: "" }))}
+              options={facets.brands}
+              renderOption={(brand) => brand}
+            />
+            <SelectField
+              label="Модель"
+              value={state.model}
+              onChange={(val) => setState((prev) => ({ ...prev, model: val }))}
+              options={modelsForBrand}
+              renderOption={(model) => model}
+              disabled={!state.brand}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+            {(() => {
+              const minBound =
+                state.priceCurrency === "RUB"
+                  ? Math.round(Math.max(0, facets.priceRange.min) * eurRubRate)
+                  : Math.max(0, facets.priceRange.min);
+              const maxBound =
+                state.priceCurrency === "RUB"
+                  ? Math.round(Math.max(facets.priceRange.max, facets.priceRange.min + 1) * eurRubRate)
+                  : Math.max(facets.priceRange.max, facets.priceRange.min + 1);
+              const safeMax = Math.max(maxBound, minBound + (state.priceCurrency === "RUB" ? 50000 : 1000));
+              return (
+                <RangeField
+                  label={`Цена (${state.priceCurrency})`}
+                  min={minBound}
+                  max={safeMax}
+                  step={state.priceCurrency === "RUB" ? 50000 : 500}
+                  from={state.priceMin}
+                  to={state.priceMax}
+                  onChange={(next) => setState((prev) => ({ ...prev, priceMin: next.from, priceMax: next.to }))}
+                  formatValue={(value) =>
+                    state.priceCurrency === "RUB"
+                      ? formatCurrency(value, "RUB")
+                      : formatCurrency(value, "EUR")
+                  }
+                />
+              );
+            })()}
+            <RangeField
+              label="Год"
+              min={facets.yearRange.min || 1990}
+              max={facets.yearRange.max || new Date().getFullYear()}
+              step={1}
+              from={state.yearFrom}
+              to={state.yearTo}
+              onChange={(next) => setState((prev) => ({ ...prev, yearFrom: next.from, yearTo: next.to }))}
+            />
+            <RangeField
+              label="Пробег (км)"
+              min={facets.mileageRange.min || 0}
+              max={Math.max(facets.mileageRange.max || 0, 300000)}
+              step={1000}
+              from={state.mileageFrom}
+              to={state.mileageTo}
+              onChange={(next) => setState((prev) => ({ ...prev, mileageFrom: next.from, mileageTo: next.to }))}
+              formatValue={(value) => `${value.toLocaleString("ru-RU")} км`}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+            <RangeField
+              label="Объём (л)"
+              min={facets.engineRange.min || 1}
+              max={Math.max(facets.engineRange.max || 0, 6)}
+              step={0.1}
+              from={state.engineFrom}
+              to={state.engineTo}
+              onChange={(next) => setState((prev) => ({ ...prev, engineFrom: next.from, engineTo: next.to }))}
+            />
+            <RangeField
+              label="Мощность (л.с.)"
+              min={facets.powerRange.min || 80}
+              max={Math.max(facets.powerRange.max || 0, 800)}
+              step={10}
+              from={state.powerFrom}
+              to={state.powerTo}
+              onChange={(next) => setState((prev) => ({ ...prev, powerFrom: next.from, powerTo: next.to }))}
+            />
+            <div className="flex items-end justify-end">
+              <button
+                type="button"
+                onClick={handleApply}
+                disabled={pending}
+                className="w-full rounded-full bg-brand-primary px-6 py-3 text-sm font-semibold text-white transition hover:bg-brand-primary-strong disabled:opacity-60 md:w-auto"
+              >
+                Применить
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+const COLOR_MAP: Record<string, string> = {
+  черный: "#000000",
+  black: "#000000",
+  белый: "#ffffff",
+  white: "#ffffff",
+  серый: "#6b7280",
+  gray: "#6b7280",
+  серебристый: "#d1d5db",
+  silver: "#d1d5db",
+  красный: "#ef4444",
+  red: "#ef4444",
+  синий: "#2563eb",
+  blue: "#2563eb",
+  зеленый: "#16a34a",
+  green: "#16a34a",
+  оранжевый: "#f97316",
+  orange: "#f97316",
+  желтый: "#eab308",
+  yellow: "#eab308",
+  коричневый: "#92400e",
+  brown: "#92400e",
+};
+
+function colorToHex(color: string) {
+  const key = color.toLowerCase();
+  if (COLOR_MAP[key]) return COLOR_MAP[key];
+  const palette = ["#0f172a", "#1f2937", "#334155", "#475569", "#f97316", "#2563eb", "#ef4444", "#16a34a"];
+  const hash = key.split("").reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+  return palette[hash % palette.length];
+}
+
+function CountrySelect({
+  label,
+  countries,
+  value,
+  onChange,
+}: {
+  label: string;
+  countries: { code: string; name: string }[];
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const selected = countries.find((c) => c.code === value);
+  const flagUrl = value ? `https://flagcdn.com/w20/${value.toLowerCase()}.png` : null;
+
+  return (
+    <label className="space-y-2 text-sm text-white/70">
+      <span>{label}</span>
+      <div className="relative">
+        {flagUrl ? (
+          <img
+            src={flagUrl}
+            alt={selected?.name ?? value}
+            className="pointer-events-none absolute left-3 top-1/2 h-4 w-6 -translate-y-1/2 rounded-sm border border-white/20 object-cover"
+>>>>>>> theirs
           />
         ))}
       </FilterGroup>
@@ -152,12 +588,17 @@ export const CatalogFilters: React.FC<CatalogFiltersProps> = ({ bodyTypes, fuelT
               type="button"
               onClick={() => toggleValue("countries", country.code)}
               className={cn(
-                "flex items-center justify-between rounded-full border border-white/15 px-4 py-2 text-xs uppercase tracking-[0.1em] text-white/50 transition",
+                "flex items-center gap-2 rounded-full border border-white/15 px-3 py-2 text-xs uppercase tracking-[0.1em] text-white/70 transition",
                 selectedCountries.has(country.code) && "border-brand-primary bg-brand-primary/20 text-white",
               )}
+              title={country.name}
             >
-              <span>{country.name}</span>
-              <span>{country.code}</span>
+              <img
+                src={`https://flagcdn.com/w20/${country.code.toLowerCase()}.png`}
+                alt={country.name}
+                className="h-4 w-6 rounded-sm border border-white/20 object-cover"
+              />
+              <span className="font-semibold">{country.code}</span>
             </button>
           ))}
         </div>
