@@ -26,3 +26,6 @@ pnpm-debug.log*
 
 # Vercel / deployment metadata
 marketplace/.vercel/
+marketplace/python/.venv/
+marketplace/python/__pycache__/
+*.pyc

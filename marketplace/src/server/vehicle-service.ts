@@ -1,4 +1,4 @@
-﻿import { and, desc, eq, gte, inArray, like, lte, or } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, like, lte, or } from "drizzle-orm";
 import { db } from "@/db/client";
 import {
   vehicles,
@@ -11,15 +11,27 @@ import {
   inquiries,
 } from "@/db/schema";
 import { formatCurrency } from "@/lib/utils";
+import type { VehicleCardModel } from "@/lib/vehicle-card-model";
 
 export interface VehicleFilter {
   search?: string;
+  brand?: string;
+  model?: string;
   countries?: string[];
   bodyTypes?: string[];
   fuelTypes?: string[];
-  transmission?: string[];
+  transmissions?: string[];
+  colors?: string[];
   minPriceEur?: number;
   maxPriceEur?: number;
+  minYear?: number;
+  maxYear?: number;
+  minMileage?: number;
+  maxMileage?: number;
+  minEngineVolumeCc?: number;
+  maxEngineVolumeCc?: number;
+  minPowerHp?: number;
+  maxPowerHp?: number;
   favorites?: string[];
 }
 
@@ -64,12 +76,16 @@ export async function getVehicles(filter: VehicleFilter = {}) {
   if (filter.search) {
     const pattern = `%${filter.search.toLowerCase()}%`;
     expressions.push(
-      or(
-        like(vehicles.brand, pattern),
-        like(vehicles.model, pattern),
-        like(vehicles.title, pattern),
-      ),
+      or(like(vehicles.brand, pattern), like(vehicles.model, pattern), like(vehicles.title, pattern)),
     );
+  }
+
+  if (filter.brand) {
+    expressions.push(eq(vehicles.brand, filter.brand));
+  }
+
+  if (filter.model) {
+    expressions.push(eq(vehicles.model, filter.model));
   }
 
   if (filter.countries?.length) {
@@ -84,8 +100,12 @@ export async function getVehicles(filter: VehicleFilter = {}) {
     expressions.push(inArray(vehicles.fuelType, filter.fuelTypes));
   }
 
-  if (filter.transmission?.length) {
-    expressions.push(inArray(vehicles.transmission, filter.transmission));
+  if (filter.transmissions?.length) {
+    expressions.push(inArray(vehicles.transmission, filter.transmissions));
+  }
+
+  if (filter.colors?.length) {
+    expressions.push(inArray(vehicles.color, filter.colors));
   }
 
   if (filter.minPriceEur) {
@@ -94,6 +114,38 @@ export async function getVehicles(filter: VehicleFilter = {}) {
 
   if (filter.maxPriceEur) {
     expressions.push(lte(vehicles.basePriceEurCents, toCents(filter.maxPriceEur)));
+  }
+
+  if (filter.minYear) {
+    expressions.push(gte(vehicles.year, filter.minYear));
+  }
+
+  if (filter.maxYear) {
+    expressions.push(lte(vehicles.year, filter.maxYear));
+  }
+
+  if (filter.minMileage) {
+    expressions.push(gte(vehicles.mileage, filter.minMileage));
+  }
+
+  if (filter.maxMileage) {
+    expressions.push(lte(vehicles.mileage, filter.maxMileage));
+  }
+
+  if (filter.minEngineVolumeCc) {
+    expressions.push(gte(vehicles.engineVolumeCc, filter.minEngineVolumeCc));
+  }
+
+  if (filter.maxEngineVolumeCc) {
+    expressions.push(lte(vehicles.engineVolumeCc, filter.maxEngineVolumeCc));
+  }
+
+  if (filter.minPowerHp) {
+    expressions.push(gte(vehicles.powerHp, filter.minPowerHp));
+  }
+
+  if (filter.maxPowerHp) {
+    expressions.push(lte(vehicles.powerHp, filter.maxPowerHp));
   }
 
   const rows = await db.query.vehicles.findMany({
@@ -121,9 +173,20 @@ export async function getVehicles(filter: VehicleFilter = {}) {
   return mapped;
 }
 
-export async function getVehicleBySlug(slug: string) {
+export async function getVehicleBySlug(slug: string | string[] | null | undefined, eurRubRate = 100) {
+  const normalizedSlug = Array.isArray(slug) ? slug[0] : slug;
+  const trimmedSlug = normalizedSlug?.trim();
+  if (!trimmedSlug) {
+    return null;
+  }
+
+  const isExternal = trimmedSlug.startsWith("ext-") && trimmedSlug.includes("__");
+  if (isExternal) {
+    return null;
+  }
+
   const row = await db.query.vehicles.findFirst({
-    where: eq(vehicles.slug, slug),
+    where: eq(vehicles.slug, trimmedSlug),
     with: {
       images: {
         orderBy: (fields, { asc }) => asc(fields.sortOrder),
@@ -143,6 +206,30 @@ export async function getVehicleBySlug(slug: string) {
   if (!row) {
     return null;
   }
+
+  return transformVehicle(row);
+}
+
+export async function getVehicleById(id: string) {
+  const row = await db.query.vehicles.findFirst({
+    where: eq(vehicles.id, id),
+    with: {
+      images: {
+        orderBy: (fields, { asc }) => asc(fields.sortOrder),
+      },
+      features: true,
+      specifications: {
+        orderBy: (fields, { asc }) => asc(fields.sortOrder),
+      },
+      markets: true,
+      logistics: {
+        orderBy: (fields, { asc }) => asc(fields.sortOrder),
+      },
+      documents: true,
+    },
+  });
+
+  if (!row) return null;
 
   return transformVehicle(row);
 }
@@ -239,24 +326,37 @@ export async function recordInquiry(data: {
 
   return result[0]?.insertedId;
 }
-export async function getVehicleById(id: string) {
-  const row = await db.query.vehicles.findFirst({
-    where: eq(vehicles.id, id),
-    with: {
-      images: {
-        orderBy: (fields, { asc }) => asc(fields.sortOrder),
-      },
-      features: true,
-      specifications: {
-        orderBy: (fields, { asc }) => asc(fields.sortOrder),
-      },
-      markets: true,
-      logistics: {
-        orderBy: (fields, { asc }) => asc(fields.sortOrder),
-      },
-      documents: true,
-    },
-  });
 
-  return row ? transformVehicle(row) : null;
+export async function getCatalogVehicles(
+  filter: VehicleFilter = {},
+  eurRubRate = 100,
+): Promise<{ items: VehicleCardModel[]; total: number }> {
+  const manualVehicles = await getVehicles(filter);
+  const manualItems = manualVehicles.map(mapInternalVehicleToCardModel);
+  return { items: manualItems, total: manualItems.length };
+}
+
+function mapInternalVehicleToCardModel(vehicle: ReturnType<typeof transformVehicle>): VehicleCardModel {
+  return {
+    id: vehicle.id,
+    slug: vehicle.slug,
+    title: vehicle.title,
+    brand: vehicle.brand,
+    model: vehicle.model,
+    year: vehicle.year,
+    bodyType: vehicle.bodyType,
+    mileage: vehicle.mileage ?? 0,
+    mileageUnit: vehicle.mileageUnit,
+    fuelType: vehicle.fuelType,
+    transmission: vehicle.transmission,
+    country: vehicle.country,
+    shortDescription: vehicle.shortDescription,
+    basePriceEur: vehicle.basePriceEur,
+    basePriceRub: vehicle.basePriceRub,
+    primaryImage: vehicle.primaryImage ?? null,
+    gallery: vehicle.gallery ?? [],
+    engineVolumeCc: vehicle.engineVolumeCc,
+    powerHp: vehicle.powerHp,
+    color: vehicle.color,
+  };
 }

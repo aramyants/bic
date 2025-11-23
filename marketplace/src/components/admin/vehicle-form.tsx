@@ -30,10 +30,10 @@ type SelectOption = string | { value: string; label: string };
 
 const INITIAL_STATE: VehicleActionState = { status: "idle" };
 
-const DEFAULT_SUCCESS_MESSAGE = "Изменения сохранены.";
-const DEFAULT_ERROR_MESSAGE = "Не удалось сохранить изменения. Попробуйте ещё раз.";
+const DEFAULT_SUCCESS_MESSAGE = "Автомобиль сохранён.";
+const DEFAULT_ERROR_MESSAGE = "Не удалось сохранить. Проверьте поля и попробуйте снова.";
 
-export function VehicleForm({ action, defaultValues = {}, submitLabel = "Сохранить" }: VehicleFormProps) {
+export function VehicleForm({ action, defaultValues = {}, submitLabel = "Save" }: VehicleFormProps) {
   const [state, formAction] = useActionState(action, INITIAL_STATE);
   const messageRef = useRef<HTMLDivElement | null>(null);
   const initialMediaState = buildInitialMediaState(defaultValues.gallery, defaultValues.thumbnailUrl);
@@ -65,7 +65,7 @@ export function VehicleForm({ action, defaultValues = {}, submitLabel = "Сох�
       ) : null}
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Field label="Название объявления" name="title" defaultValue={defaultValues.title} required />
+        <Field label="Название в каталоге" name="title" defaultValue={defaultValues.title} required />
         <Field label="Бренд" name="brand" defaultValue={defaultValues.brand} required />
         <Field label="Модель" name="model" defaultValue={defaultValues.model} required />
         <SelectField
@@ -74,7 +74,7 @@ export function VehicleForm({ action, defaultValues = {}, submitLabel = "Сох�
           options={BODY_TYPES.map((type) => ({ value: type, label: BODY_TYPE_LABELS[type] }))}
           defaultValue={defaultValues.bodyType as string}
         />
-        <Field label="Год выпуска" name="year" type="number" defaultValue={defaultValues.year} required />
+        <Field label="Год" name="year" type="number" defaultValue={defaultValues.year} required />
         <Field label="Пробег" name="mileage" type="number" defaultValue={defaultValues.mileage} />
         <Field
           label="Цена, EUR"
@@ -85,7 +85,7 @@ export function VehicleForm({ action, defaultValues = {}, submitLabel = "Сох�
           required
         />
         <SelectField
-          label="Страна расположения"
+          label="Страна"
           name="country"
           options={COUNTRIES.map((c) => ({ value: c.code, label: `${c.code} — ${c.name}` }))}
           defaultValue={defaultValues.country as string}
@@ -103,14 +103,14 @@ export function VehicleForm({ action, defaultValues = {}, submitLabel = "Сох�
           options={TRANSMISSIONS.map((transmission) => ({ value: transmission, label: TRANSMISSION_LABELS[transmission] }))}
           defaultValue={defaultValues.transmission as string}
         />
-        <Field label="Тип привода" name="driveType" defaultValue={defaultValues.driveType} />
+        <Field label="Привод" name="driveType" defaultValue={defaultValues.driveType} />
         <Field
           label="Объём двигателя (см³)"
           name="engineVolumeCc"
           type="number"
           defaultValue={defaultValues.engineVolumeCc}
         />
-        <Field label="Мощность (л. с.)" name="powerHp" type="number" defaultValue={defaultValues.powerHp} />
+        <Field label="Мощность, л.с." name="powerHp" type="number" defaultValue={defaultValues.powerHp} />
       </div>
 
       <TextareaField
@@ -120,15 +120,15 @@ export function VehicleForm({ action, defaultValues = {}, submitLabel = "Сох�
         defaultValue={defaultValues.shortDescription}
       />
       <Field
-        label="Ссылка на внешнее объявление"
+        label="Ссылка на оригинал"
         name="originalListingUrl"
         type="url"
         defaultValue={defaultValues.originalListingUrl}
       />
 
       <ImageUploadField
-        label="Фотографии автомобиля"
-        description="Перетащите файлы с изображениями или выберите их вручную. Затем отметьте кадр, который будет обложкой в каталоге."
+        label="Галерея"
+        description="Вставьте ссылки на изображения, по одной в строке. Первое станет обложкой."
         value={galleryImages}
         onChange={setGalleryImages}
         primaryValue={coverImage}
@@ -136,31 +136,31 @@ export function VehicleForm({ action, defaultValues = {}, submitLabel = "Сох�
       />
 
       <TextareaField
-        label="Особенности / комплектация (по одной строке)"
+        label="Опции (каждая с новой строки)"
         name="features"
         rows={4}
         defaultValue={defaultValues.features}
       />
       <TextareaField
-        label="Характеристики (формат «Название: значение» на строку)"
+        label="Характеристики (формат: Метка: значение)"
         name="specs"
         rows={4}
         defaultValue={defaultValues.specs}
       />
       <TextareaField
-        label="Рынки/страны (ISO-коды через запятую)"
+        label="Рынки (ISO-коды, например DE,PL,LT)"
         name="markets"
         rows={2}
         defaultValue={defaultValues.markets}
       />
       <TextareaField
-        label="Этапы логистики (Этап|Описание|ETA в днях)"
+        label="Логистика (Шаг|Описание|ETA)"
         name="logistics"
         rows={4}
         defaultValue={defaultValues.logistics}
       />
       <TextareaField
-        label="Документы (формат «Название|URL»)"
+        label="Документы (Название|URL)"
         name="documents"
         rows={3}
         defaultValue={defaultValues.documents}
@@ -181,7 +181,7 @@ function SubmitButton({ label }: { label: string }) {
     <button
       type="submit"
       disabled={pending}
-      className="inline-flex h-12 items-center justify-center rounded-full bg-brand-primary px-6 text-xs font-semibold text-white transition hover:bg-brand-primary-strong disabled:cursor-not-allowed disabled:bg-brand-primary/50 disabled:text-white/70"
+      className="inline-flex h-12 items-center justify-center rounded-full bg-brand-primary px-6 text-xs font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-brand-primary-strong disabled:cursor-not-allowed disabled:bg-brand-primary/50 disabled:text-white/70"
     >
       {pending ? "Сохраняем..." : label}
     </button>
@@ -252,7 +252,7 @@ function SelectField({ label, name, options, defaultValue }: { label: string; na
         className="h-11 w-full rounded-full border border-white/15 bg-black/30 px-4 text-sm text-white focus:border-brand-primary focus:outline-none"
       >
         <option value="" className="bg-black">
-          — Не выбрано —
+          — Select —
         </option>
         {options.map((option) => {
           const normalized = typeof option === "string" ? { value: option, label: option } : option;

@@ -11,12 +11,11 @@ import { getEurRubRate } from "@/server/exchange-service";
 
 const copy = {
   badge: "Каталог",
-  title: "Каталог B.I.C.",
-  subtitle:
-    "Подберите автомобиль из актуального каталога: свежие позиции, реальные фото и понятные условия доставки.",
+  title: "Best Imported Cars",
+  subtitle: "Свежие позиции с прозрачным расчётом и понятными условиями доставки.",
   summaryPrefix: "Всего",
   summarySuffix: "авто в каталоге",
-  sort: "Сначала показываем наиболее подходящие предложения",
+  sort: "Сначала показываем наиболее подходящие предложения. Настройте фильтры и сортировку ниже.",
   favorites: "Избранное",
   empty: "По заданным фильтрам ничего не найдено. Попробуйте скорректировать критерии поиска.",
 } as const;
@@ -28,6 +27,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
   const filters = parseFilters(resolvedSearchParams);
   const page = Number.parseInt((resolvedSearchParams.page as string) ?? "1", 10) || 1;
   const pageSize = 12;
+  const priceCurrency = resolvedSearchParams.priceCurrency === "RUB" ? "RUB" : "EUR";
 
   const eurRubRate = await getEurRubRate().catch(() => 100);
   const { items: allItems } = await getCatalogVehicles({}, eurRubRate);
@@ -69,7 +69,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
 
         <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
           {pagedItems.map((vehicle: VehicleCardModel) => (
-            <VehicleCard key={vehicle.id} vehicle={vehicle} eurRubRate={eurRubRate} />
+            <VehicleCard key={vehicle.id} vehicle={vehicle} eurRubRate={eurRubRate} priceCurrency={priceCurrency} />
           ))}
         </div>
 

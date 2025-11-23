@@ -38,15 +38,15 @@ export const CostCalculator: React.FC<CostCalculatorProps> = ({ individual, comp
 
   return (
     <div className="space-y-6 rounded-[36px] border border-white/12 bg-white/8 p-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold text-white">Итого под ключ</h3>
-          <p className="text-xs text-white/55">Расчёт для выбранного типа клиента</p>
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1 min-w-0">
+          <h3 className="text-lg font-semibold text-white">Финальный расчёт</h3>
+          <p className="text-xs text-white/55">Разница в ставках для физических лиц и компаний учитывается ниже.</p>
         </div>
-        <div className="flex items-center gap-3 text-xs text-white/70">
-          <span className={!isCompany ? "text-white" : undefined}>Физлицо</span>
+        <div className="flex flex-shrink-0 items-center gap-3 text-xs text-white/70 whitespace-nowrap">
+          <span className={!isCompany ? "text-white" : undefined}>Физ. лицо</span>
           <Switch checked={isCompany} onClick={() => setIsCompany((prev) => !prev)} className="bg-white/20" />
-          <span className={isCompany ? "text-white" : undefined}>Юрлицо</span>
+          <span className={isCompany ? "text-white" : undefined}>Юр. лицо</span>
         </div>
       </div>
       <div className="grid gap-3 text-sm text-white/70">
@@ -65,7 +65,7 @@ export const CostCalculator: React.FC<CostCalculatorProps> = ({ individual, comp
         <span className="text-2xl font-semibold">{formatCurrency(breakdown.total, "RUB")}</span>
       </div>
       <p className="text-xs text-white/55">
-        Итоговая стоимость может меняться с учётом актуального курса, ставок портов и дополнительных услуг. Подтверждение
+        Итоговая сумма может корректироваться с учётом курса EUR/RUB, ставок портов и выбранной логистики. Подтверждение
         расчёта происходит после проверки лота и фиксации договора.
       </p>
     </div>

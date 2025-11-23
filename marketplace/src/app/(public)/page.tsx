@@ -1,14 +1,14 @@
-import Link from "next/link";
-import { ArrowRight, ShieldCheck, Sparkles, Timer } from "lucide-react";
+import { ArrowRight, ShieldCheck, Sparkles, Timer } from 'lucide-react';
+import Link from 'next/link';
 
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { VehicleCard } from "@/components/vehicle-card";
-import { LandedCostCalculator } from "@/components/calculator/landed-cost-calculator";
-import { getFeaturedVehicles } from "@/server/vehicle-service";
-import { getEurRubRate } from "@/server/exchange-service";
-import { COUNTRIES } from "@/lib/constants";
-import { formatLocaleNumber } from "@/lib/utils";
+import { LandedCostCalculator } from '@/components/calculator/landed-cost-calculator';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { VehicleCard } from '@/components/vehicle-card';
+import { COUNTRIES } from '@/lib/constants';
+import { formatLocaleNumber } from '@/lib/utils';
+import { getEurRubRate } from '@/server/exchange-service';
+import { getFeaturedVehicles } from '@/server/vehicle-service';
 
 export default async function LandingPage({
   searchParams,
@@ -21,18 +21,28 @@ export default async function LandingPage({
   ]);
 
   const params = await searchParams;
-  const submittedParam = Array.isArray(params.submitted) ? params.submitted[0] : params.submitted;
-  const errorParam = Array.isArray(params.error) ? params.error[0] : params.error;
-  const showSuccess = submittedParam === "1";
-  const showError = errorParam === "form";
+  const submittedParam = Array.isArray(params.submitted)
+    ? params.submitted[0]
+    : params.submitted;
+  const errorParam = Array.isArray(params.error)
+    ? params.error[0]
+    : params.error;
+  const showSuccess = submittedParam === '1';
+  const showError = errorParam === 'form';
 
   return (
     <div className="space-y-32">
       {showSuccess && (
-        <FormBanner tone="success" message="Заявка отправлена, мы свяжемся с вами в течение 1–2 дней." />
+        <FormBanner
+          tone="success"
+          message="Заявка отправлена, мы свяжемся с вами в течение 1–2 дней."
+        />
       )}
       {showError && (
-        <FormBanner tone="error" message="Не удалось отправить форму. Проверьте данные и попробуйте ещё раз." />
+        <FormBanner
+          tone="error"
+          message="Не удалось отправить форму. Проверьте данные и попробуйте ещё раз."
+        />
       )}
       <HeroSection eurRubRate={eurRubRate} />
       <StatsStrip eurRubRate={eurRubRate} />
@@ -59,8 +69,9 @@ function HeroSection({ eurRubRate }: { eurRubRate: number }) {
           B.I.C. подбор и поставка автомобилей и мототехники
         </h1>
         <p className="max-w-2xl text-lg text-white/70">
-          Комплексно сопровождаем покупку и доставку авто из Европы, Азии и США. Предоставляем прозрачный расчёт, проверяем
-          историю, выкупаем и привозим «под ключ» с оформлением всех документов.
+          Комплексно сопровождаем покупку и доставку авто из Европы, Азии и США.
+          Предоставляем прозрачный расчёт, проверяем историю, выкупаем и
+          привозим «под ключ» с оформлением всех документов.
         </p>
         <div className="flex flex-wrap items-center gap-4">
           <Button size="lg">
@@ -83,22 +94,28 @@ function HeroSection({ eurRubRate }: { eurRubRate: number }) {
         <div className="grid gap-6 sm:grid-cols-3">
           {[
             {
-              title: "Экспертиза и аудит",
-              description: "Проверяем по 12 базам, организуем техосмотр, CarVertical, escrow и инспекцию на месте.",
+              title: 'Экспертиза и аудит',
+              description:
+                'Проверяем по 12 базам, организуем техосмотр, CarVertical, escrow и инспекцию на месте.',
               icon: <Sparkles className="h-5 w-5 text-brand-primary" />,
             },
             {
-              title: "Скорость и контроль",
-              description: "Берём на себя выкуп, логистику, таможню и сертификацию. Выгрузка статуса в личный кабинет 24/7.",
+              title: 'Скорость и контроль',
+              description:
+                'Берём на себя выкуп, логистику, таможню и сертификацию. Выгрузка статуса в личный кабинет 24/7.',
               icon: <Timer className="h-5 w-5 text-brand-primary" />,
             },
             {
-              title: "Гарантия договора",
-              description: "Фиксируем стоимость в рублях, страхуем поставку и подключаем местных брокеров на каждом этапе.",
+              title: 'Гарантия договора',
+              description:
+                'Фиксируем стоимость в рублях, страхуем поставку и подключаем местных брокеров на каждом этапе.',
               icon: <ShieldCheck className="h-5 w-5 text-brand-primary" />,
             },
           ].map((item) => (
-            <div key={item.title} className="rounded-[32px] border border-white/10 bg-white/6 p-6 backdrop-blur-lg">
+            <div
+              key={item.title}
+              className="rounded-[32px] border border-white/10 bg-white/6 p-6 backdrop-blur-lg"
+            >
               <div className="flex items-center gap-3 text-white">
                 <span className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/40">
                   {item.icon}
@@ -111,13 +128,15 @@ function HeroSection({ eurRubRate }: { eurRubRate: number }) {
         </div>
       </div>
       <div className="mt-12 flex flex-col gap-4 rounded-[40px] border border-white/10 bg-white/8 p-6 text-sm text-white/80 lg:ml-12 lg:mt-0 lg:w-[360px]">
-        <h3 className="text-lg font-semibold text-white">Что входит в услугу</h3>
+        <h3 className="text-lg font-semibold text-white">
+          Что входит в услугу
+        </h3>
         <ul className="space-y-3">
           {[
-            "Поиск и подбор авто или мототехники с учётом бюджета и требований.",
-            "Переговоры с дилерами, проверка истории и юридического статуса.",
-            "Организация логистики, страхование, таможенное оформление и сертификация.",
-            "Доставка до РФ, постановка на учёт, выдача в нашем центре или доставка до двери.",
+            'Поиск и подбор авто или мототехники с учётом бюджета и требований.',
+            'Переговоры с дилерами, проверка истории и юридического статуса.',
+            'Организация логистики, страхование, таможенное оформление и сертификация.',
+            'Доставка до РФ, постановка на учёт, выдача в нашем центре или доставка до двери.',
           ].map((item) => (
             <li key={item} className="flex gap-3">
               <span className="mt-1 inline-flex h-2 w-2 shrink-0 rounded-full bg-brand-primary" />
@@ -133,19 +152,19 @@ function HeroSection({ eurRubRate }: { eurRubRate: number }) {
 function StatsStrip({ eurRubRate }: { eurRubRate: number }) {
   const stats = [
     {
-      label: "Страны поставки",
-      value: "25",
-      description: "Европа, Азия, США и ОАЭ с прямыми поставщиками.",
+      label: 'Страны поставки',
+      value: '25',
+      description: 'Европа, Азия, США и ОАЭ с прямыми поставщиками.',
     },
     {
-      label: "Средний курс на сегодня",
+      label: 'Средний курс на сегодня',
       value: `${eurRubRate.toFixed(2)} ₽/€`,
-      description: "Фиксируем курс на дату бронирования договора.",
+      description: 'Фиксируем курс на дату бронирования договора.',
     },
     {
-      label: "Опыт команды",
-      value: "12 лет",
-      description: "Более 1800 успешно закрытых сделок под ключ.",
+      label: 'Опыт команды',
+      value: '12 лет',
+      description: 'Более 1800 успешно закрытых сделок под ключ.',
     },
   ];
 
@@ -180,9 +199,12 @@ async function FeaturedCatalog({
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div className="space-y-2">
           <Badge tone="outline">Избранный каталог</Badge>
-          <h2 className="text-3xl font-semibold text-white md:text-4xl">Готовые предложения недели</h2>
+          <h2 className="text-3xl font-semibold text-white md:text-4xl">
+            Готовые предложения недели
+          </h2>
           <p className="text-sm text-white/70">
-            Подборка свежих автомобилей с реальными VIN, прозрачным ценообразованием и ссылкой на оригинальное объявление.
+            Подборка свежих автомобилей с реальными VIN, прозрачным
+            ценообразованием и ссылкой на оригинальное объявление.
           </p>
         </div>
         <Link
@@ -194,7 +216,11 @@ async function FeaturedCatalog({
       </div>
       <div className="grid gap-6 md:grid-cols-3">
         {vehicles.map((vehicle) => (
-          <VehicleCard key={vehicle.id} vehicle={vehicle} eurRubRate={eurRubRate} />
+          <VehicleCard
+            key={vehicle.id}
+            vehicle={vehicle}
+            eurRubRate={eurRubRate}
+          />
         ))}
       </div>
     </section>
@@ -204,24 +230,24 @@ async function FeaturedCatalog({
 function ServicesSection() {
   const services = [
     {
-      title: "Расчёт полной стоимости",
+      title: 'Расчёт полной стоимости',
       description:
-        "Онлайн-калькулятор для физических и юридических лиц: логистика, пошлины, акциз, утилизационный сбор, НДС и комиссия B.I.C.",
+        'Онлайн-калькулятор для физических и юридических лиц: логистика, пошлины, акциз, утилизационный сбор, НДС и комиссия B.I.C.',
     },
     {
-      title: "Прозрачное ценообразование",
+      title: 'Прозрачное ценообразование',
       description:
-        "Подробный breakdown раскрывает все статьи расходов. Можно открыть оригинальное объявление на mobile.de и сравнить.",
+        'Подробный breakdown раскрывает все статьи расходов. Можно открыть оригинальное объявление на mobile.de и сравнить.',
     },
     {
-      title: "Интеграция с mobile.de",
+      title: 'Интеграция с mobile.de',
       description:
-        "Карточка автомобиля содержит ссылку на оригинальную публикацию, фото, историю и документы по техсостоянию.",
+        'Карточка автомобиля содержит ссылку на оригинальную публикацию, фото, историю и документы по техсостоянию.',
     },
     {
-      title: "Избранное и уведомления",
+      title: 'Избранное и уведомления',
       description:
-        "Сохраняйте понравившиеся предложения, собирайте подборки и получайте уведомления о снижении цены или новых аналогах.",
+        'Сохраняйте понравившиеся предложения, собирайте подборки и получайте уведомления о снижении цены или новых аналогах.',
     },
   ];
 
@@ -231,17 +257,25 @@ function ServicesSection() {
         <div className="space-y-3">
           <Badge tone="default">Возможности платформы</Badge>
           <h2 className="text-3xl font-semibold text-white md:text-4xl">
-            Маркетплейс B.I.C. «Best Imported Cars» — функционал для подбора и импорта
+            Маркетплейс B.I.C. «Best Imported Cars» — функционал для подбора и
+            импорта
           </h2>
           <p className="max-w-3xl text-sm text-white/70">
-            Мы синхронизировали витрину с проверенными площадками и интегрировали инструменты расчёта, чтобы вы сразу видели
-            стоимость под ключ. Каталог разделён по брендам и типам техники, а каждая карточка доступна в двух валютах.
+            Мы синхронизировали витрину с проверенными площадками и
+            интегрировали инструменты расчёта, чтобы вы сразу видели стоимость
+            под ключ. Каталог разделён по брендам и типам техники, а каждая
+            карточка доступна в двух валютах.
           </p>
         </div>
         <div className="mt-10 grid gap-6 md:grid-cols-2">
           {services.map((service) => (
-            <div key={service.title} className="space-y-3 rounded-[32px] border border-white/12 bg-white/6 p-6">
-              <h3 className="text-xl font-semibold text-white">{service.title}</h3>
+            <div
+              key={service.title}
+              className="space-y-3 rounded-[32px] border border-white/12 bg-white/6 p-6"
+            >
+              <h3 className="text-xl font-semibold text-white">
+                {service.title}
+              </h3>
               <p className="text-sm text-white/70">{service.description}</p>
             </div>
           ))}
@@ -257,14 +291,21 @@ function CalculatorSection({ eurRubRate }: { eurRubRate: number }) {
       <div className="grid gap-10 rounded-[42px] border border-white/10 bg-white/8 px-10 py-14 text-white lg:grid-cols-[1fr_1.1fr]">
         <div className="space-y-4">
           <Badge tone="outline">Калькулятор стоимости</Badge>
-          <h2 className="text-3xl font-semibold text-white md:text-4xl">Рассчитайте цену «под ключ» за 30 секунд</h2>
+          <h2 className="text-3xl font-semibold text-white md:text-4xl">
+            Рассчитайте цену «под ключ» за 30 секунд
+          </h2>
           <p className="text-sm text-white/70">
-            Учитываем курс ЦБ, логистику, страхование, таможенные пошлины, акциз, утильсбор, брокераж и комиссию B.I.C. —
-            достаточно выбрать страну, тип клиента и базовую стоимость автомобиля в валюте продавца.
+            Учитываем курс ЦБ, логистику, страхование, таможенные пошлины,
+            акциз, утильсбор, брокераж и комиссию B.I.C. — достаточно выбрать
+            страну, тип клиента и базовую стоимость автомобиля в валюте
+            продавца.
           </p>
           <ul className="space-y-2 text-sm text-white/70">
             <li>• Переключатель для расчёта для физлиц и юрлиц.</li>
-            <li>• Возможность указать дополнительные услуги: предпродажная подготовка, доставка до двери.</li>
+            <li>
+              • Возможность указать дополнительные услуги: предпродажная
+              подготовка, доставка до двери.
+            </li>
             <li>• Экспорт расчёта в PDF и отправка менеджеру за один клик.</li>
           </ul>
         </div>
@@ -280,17 +321,30 @@ function CountriesSection() {
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <Badge tone="default">География поставок</Badge>
-          <h2 className="mt-2 text-3xl font-semibold text-white md:text-4xl">25 стран в режиме онлайн 24/7</h2>
+          <h2 className="mt-2 text-3xl font-semibold text-white md:text-4xl">
+            25 стран в режиме онлайн 24/7
+          </h2>
         </div>
         <p className="max-w-xl text-sm text-white/70">
-          Сотрудничаем с официальными дилерами и крупными трейдерами. Обновляем остатки дважды в день и можем выкупить
-          автомобиль на аукционе или у частного продавца.
+          Сотрудничаем с официальными дилерами и крупными трейдерами. Обновляем
+          остатки дважды в день и можем выкупить автомобиль на аукционе или у
+          частного продавца.
         </p>
       </div>
       <div className="grid gap-3 rounded-[42px] border border-white/10 bg-black/65 p-6 text-sm text-white/70 sm:grid-cols-2 md:grid-cols-3">
         {COUNTRIES.map(({ code, name }) => (
-          <div key={code} className="flex items-center gap-3 rounded-3xl border border-white/5 bg-white/3 px-4 py-3">
-            <span className="inline-flex h-2 w-2 shrink-0 rounded-full bg-brand-primary" />
+          <div
+            key={code}
+            className="flex items-center gap-3 rounded-3xl border border-white/5 bg-white/3 px-4 py-3"
+          >
+            <img
+              src={`https://flagcdn.com/w20/${code.toLowerCase()}.png`}
+              srcSet={`https://flagcdn.com/w40/${code.toLowerCase()}.png 2x`}
+              width="20"
+              height="15"
+              alt={`${name} flag`}
+              className="shrink-0 rounded-sm"
+            />
             <span>{name}</span>
           </div>
         ))}
@@ -302,36 +356,43 @@ function CountriesSection() {
 function ProcessSection() {
   const steps = [
     {
-      title: "Бриф и подбор",
+      title: 'Бриф и подбор',
       description:
-        "Заполняем анкету, фиксируем бюджет, подписываем NDA и конфиденциальность, после чего запускаем подбор и предварительный расчёт.",
+        'Заполняем анкету, фиксируем бюджет, подписываем NDA и конфиденциальность, после чего запускаем подбор и предварительный расчёт.',
     },
     {
-      title: "Проверка и бронь",
+      title: 'Проверка и бронь',
       description:
-        "Собираем 5–7 релевантных предложений, проверяем историю, формируем отчёт, согласуем итоговую цену и резервируем автомобиль.",
+        'Собираем 5–7 релевантных предложений, проверяем историю, формируем отчёт, согласуем итоговую цену и резервируем автомобиль.',
     },
     {
-      title: "Выкуп и логистика",
+      title: 'Выкуп и логистика',
       description:
-        "Проводим оплату через эскроу, страхуем, организуем доставку в РФ, проходим таможню, сертификацию и оплачиваем пошлины.",
+        'Проводим оплату через эскроу, страхуем, организуем доставку в РФ, проходим таможню, сертификацию и оплачиваем пошлины.',
     },
     {
-      title: "Выдача и сервис",
+      title: 'Выдача и сервис',
       description:
-        "Проводим предпродажную подготовку, устанавливаем дополнительное оборудование и передаём автомобиль клиенту.",
+        'Проводим предпродажную подготовку, устанавливаем дополнительное оборудование и передаём автомобиль клиенту.',
     },
   ];
 
   return (
     <section className="mx-auto w-full max-w-[1320px]">
       <div className="rounded-[42px] border border-white/10 bg-white/6 p-10">
-        <h2 className="text-3xl font-semibold text-white md:text-4xl">Как это работает</h2>
+        <h2 className="text-3xl font-semibold text-white md:text-4xl">
+          Как это работает
+        </h2>
         <div className="mt-10 grid gap-8 md:grid-cols-2 xl:grid-cols-4">
           {steps.map((step, index) => (
-            <div key={step.title} className="flex flex-col gap-4 rounded-[32px] border border-white/10 bg-black/45 p-6">
+            <div
+              key={step.title}
+              className="flex flex-col gap-4 rounded-[32px] border border-white/10 bg-black/45 p-6"
+            >
               <div className="text-xs text-white/50">Шаг {index + 1}</div>
-              <div className="text-lg font-semibold text-white">{step.title}</div>
+              <div className="text-lg font-semibold text-white">
+                {step.title}
+              </div>
               <p className="text-sm text-white/70">{step.description}</p>
             </div>
           ))}
@@ -348,11 +409,13 @@ function ContactCta() {
         <div className="space-y-6">
           <Badge tone="default">Контакты</Badge>
           <h2 className="text-3xl font-semibold text-white md:text-4xl">
-            Получите персональный подбор и расчёт стоимости доставки автомобиля за 24 часа
+            Получите персональный подбор и расчёт стоимости доставки автомобиля
+            за 24 часа
           </h2>
           <p className="max-w-xl text-sm text-white/70">
-            Оставьте заявку — менеджер подтвердит детали, подберёт актуальные предложения и расскажет о способах оплаты.
-            Уведомление придёт в Telegram и на почту.
+            Оставьте заявку — менеджер подтвердит детали, подберёт актуальные
+            предложения и расскажет о способах оплаты. Уведомление придёт в
+            Telegram и на почту.
           </p>
           <div className="grid gap-4 text-sm text-white/70 md:grid-cols-2">
             <div className="rounded-[32px] border border-white/12 bg-black/35 px-5 py-4">
@@ -363,7 +426,10 @@ function ContactCta() {
             </div>
             <div className="rounded-[32px] border border-white/12 bg-black/35 px-5 py-4">
               <div className="text-white/45">Email</div>
-              <a href="mailto:sales@bic.market" className="text-white hover:underline">
+              <a
+                href="mailto:sales@bic.market"
+                className="text-white hover:underline"
+              >
                 sales@bic.market
               </a>
             </div>
@@ -413,14 +479,22 @@ function ContactCta() {
   );
 }
 
-function FormBanner({ tone, message }: { tone: "success" | "error"; message: string }) {
+function FormBanner({
+  tone,
+  message,
+}: {
+  tone: 'success' | 'error';
+  message: string;
+}) {
   const styles =
-    tone === "success"
-      ? "border-emerald-400/40 bg-emerald-500/15 text-emerald-100"
-      : "border-red-400/40 bg-red-500/15 text-red-100";
+    tone === 'success'
+      ? 'border-emerald-400/40 bg-emerald-500/15 text-emerald-100'
+      : 'border-red-400/40 bg-red-500/15 text-red-100';
 
   return (
-    <div className={`mx-auto mt-8 w-full max-w-[960px] rounded-[32px] border px-6 py-4 text-sm ${styles}`}>
+    <div
+      className={`mx-auto mt-8 w-full max-w-[960px] rounded-[32px] border px-6 py-4 text-sm ${styles}`}
+    >
       {message}
     </div>
   );

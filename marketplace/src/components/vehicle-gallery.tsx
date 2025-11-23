@@ -56,7 +56,7 @@ export const VehicleGallery: React.FC<VehicleGalleryProps> = ({ images, title })
             showNext();
           }
         }}
-        aria-label="Галерея автомобиля"
+        aria-label="Просмотр галереи автомобиля"
       >
         <div className="relative aspect-[16/10] w-full">
           {activeImage ? (
@@ -70,7 +70,7 @@ export const VehicleGallery: React.FC<VehicleGalleryProps> = ({ images, title })
               priority
             />
           ) : (
-            <div className="flex h-full items-center justify-center text-sm text-white/50">Изображения пока недоступны</div>
+            <div className="flex h-full items-center justify-center text-sm text-white/50">Фото пока нет</div>
           )}
         </div>
 

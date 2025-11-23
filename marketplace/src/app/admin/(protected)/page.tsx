@@ -1,57 +1,30 @@
-import Link from "next/link";
-
-import { getVehicles } from "@/server/vehicle-service";
-import { formatCurrency } from "@/lib/utils";
-
 export default async function AdminDashboard() {
-  const vehicles = await getVehicles();
-
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-semibold text-white">Каталог</h1>
-          <p className="text-sm text-white/60">Управляйте объявлениями, обновляйте цены и публикуйте новые предложения.</p>
+          <h1 className="text-3xl font-semibold text-white">Обзор</h1>
+          <p className="text-sm text-white/60">
+            Добро пожаловать в панель администратора B.I.C. Управляйте каталогом, калькулятором и отзывами через разделы слева.
+          </p>
         </div>
-        <Link
-          href="/admin/vehicles/new"
-          className="inline-flex h-12 items-center justify-center rounded-full bg-brand-primary px-6 text-xs font-semibold text-white transition hover:bg-brand-primary-strong"
-        >
-          Добавить авто
-        </Link>
       </div>
-      <div className="overflow-hidden rounded-[36px] border border-white/10 bg-white/6">
-        <table className="w-full table-fixed text-left text-sm text-white/70">
-          <thead className="border-b border-white/10 text-xs text-white/45">
-            <tr>
-              <th className="px-6 py-4">Автомобиль</th>
-              <th className="px-6 py-4">Страна</th>
-              <th className="px-6 py-4">Цена (EUR)</th>
-              <th className="px-6 py-4">Действия</th>
-            </tr>
-          </thead>
-          <tbody>
-            {vehicles.map((vehicle) => (
-              <tr key={vehicle.id} className="border-b border-white/5 last:border-none">
-                <td className="truncate px-6 py-4 text-white">
-                  <div className="font-semibold">{vehicle.title}</div>
-                  <div className="text-xs text-white/45">
-                    {vehicle.brand} • {vehicle.year}
-                  </div>
-                </td>
-                <td className="px-6 py-4">
-                  <span className="rounded-full border border-white/20 px-3 py-1 text-xs text-white/65">{vehicle.country}</span>
-                </td>
-                <td className="px-6 py-4 text-white">{formatCurrency(vehicle.basePriceEur, "EUR")}</td>
-                <td className="px-6 py-4">
-                  <Link href={`/admin/vehicles/${vehicle.id}/edit`} className="text-xs text-white/65 hover:text-white">
-                    Редактировать
-                  </Link>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+
+      <div className="grid gap-6 md:grid-cols-3">
+        {[
+          { title: "Каталог", description: "Создавайте и редактируйте автомобили", href: "/admin/vehicles" },
+          { title: "Калькулятор", description: "Настройка ставок и логистики", href: "/admin/calculator" },
+          { title: "Отзывы", description: "Публикуйте отзывы клиентов", href: "/admin/testimonials" },
+        ].map((item) => (
+          <a
+            key={item.href}
+            href={item.href}
+            className="rounded-[28px] border border-white/10 bg-white/5 p-6 text-white transition hover:border-orange-500/40 hover:bg-white/10"
+          >
+            <div className="text-lg font-semibold">{item.title}</div>
+            <div className="mt-2 text-sm text-white/65">{item.description}</div>
+          </a>
+        ))}
       </div>
     </div>
   );

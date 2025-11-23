@@ -127,7 +127,7 @@ export async function createVehicleAction(
   if (!parsedResult.success) {
     return {
       status: "error",
-      message: "Проверьте заполненные поля и повторите попытку."
+      message: "Проверьте заполненные поля и попробуйте снова.",
     };
   }
 
@@ -243,7 +243,7 @@ export async function createVehicleAction(
     console.error("[vehicles-admin] failed to create vehicle", error);
     return {
       status: "error",
-      message: "Не удалось сохранить автомобиль. Попробуйте ещё раз."
+      message: "Не удалось сохранить автомобиль. Попробуйте ещё раз.",
     };
   }
 
@@ -252,7 +252,7 @@ export async function createVehicleAction(
 
   return {
     status: "success",
-    message: "Автомобиль успешно создан."
+    message: "Автомобиль создан.",
   };
 }
 
@@ -266,7 +266,7 @@ export async function updateVehicleAction(
   if (!id) {
     return {
       status: "error",
-      message: "Не указан идентификатор автомобиля."
+      message: "Не указан идентификатор автомобиля.",
     };
   }
 
@@ -274,7 +274,7 @@ export async function updateVehicleAction(
   if (!parsedResult.success) {
     return {
       status: "error",
-      message: "Проверьте заполненные поля и повторите попытку."
+      message: "Проверьте заполненные поля и попробуйте снова.",
     };
   }
 
@@ -282,7 +282,7 @@ export async function updateVehicleAction(
   if (!existing) {
     return {
       status: "error",
-      message: "Автомобиль не найден — возможно, он уже удалён."
+      message: "Автомобиль не найден — возможно, он удалён.",
     };
   }
 
@@ -397,7 +397,7 @@ export async function updateVehicleAction(
     console.error("[vehicles-admin] failed to update vehicle", error);
     return {
       status: "error",
-      message: "Не удалось сохранить изменения. Попробуйте ещё раз."
+      message: "Не удалось сохранить изменения. Попробуйте ещё раз.",
     };
   }
 
@@ -407,7 +407,7 @@ export async function updateVehicleAction(
 
   return {
     status: "success",
-    message: "Автомобиль успешно обновлён."
+    message: "Автомобиль обновлён.",
   };
 }
 

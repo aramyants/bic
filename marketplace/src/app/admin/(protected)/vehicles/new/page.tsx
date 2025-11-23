@@ -5,9 +5,9 @@ export default function NewVehiclePage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-semibold text-white">Добавление автомобиля</h1>
+        <h1 className="text-3xl font-semibold text-white">Добавить автомобиль</h1>
         <p className="text-sm text-white/60">
-          Заполните карточку: фотографии, описание и параметры помогут быстрее опубликовать автомобиль в каталоге.
+          Заполните основные данные, добавьте фото и ссылку на оригинальное объявление. Эти данные попадут в каталог и калькулятор.
         </p>
       </div>
       <VehicleForm action={createVehicleAction} submitLabel="Создать автомобиль" />

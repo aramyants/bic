@@ -5,9 +5,9 @@ import { Badge } from "@/components/ui/badge";
 import { getEurRubRate } from "@/server/exchange-service";
 
 export const metadata: Metadata = {
-  title: "Калькулятор стоимости | B.I.C.",
+  title: "Калькулятор растаможки | B.I.C.",
   description:
-    "Онлайн-калькулятор полной стоимости автомобиля с доставкой, растаможкой и комиссией B.I.C. по курсу ЦБ РФ.",
+    "Онлайн-калькулятор доставки и растаможки автомобилей. Узнайте примерную стоимость ввоза авто вместе с B.I.C.",
 };
 
 export default async function CalculatorPage() {
@@ -16,19 +16,19 @@ export default async function CalculatorPage() {
   return (
     <div className="mx-auto w-full max-w-[1100px] space-y-8 px-6 py-16 text-white">
       <div className="space-y-3">
-        <Badge tone="outline">Калькулятор стоимости</Badge>
-        <h1 className="text-4xl font-semibold">Расчёт «под ключ» для вашего автомобиля</h1>
+        <Badge tone="outline">Калькулятор расходов</Badge>
+        <h1 className="text-4xl font-semibold">Расчёт доставки и оформления авто</h1>
         <p className="text-sm text-white/70">
-          Укажите стоимость авто у продавца и измените параметры — увидите примерную сумму в рублях с учётом логистики,
-          таможни и комиссии. Для уточнения цифр отправьте расчёт менеджеру B.I.C.
+          Введите параметры автомобиля и получите ориентировочную стоимость с учётом пошлин, НДС и логистики. Мы
+          работаем как с частными лицами, так и с компаниями.
         </p>
-        <p className="text-xs text-white/55">Текущий курс ЦБ: {eurRubRate.toFixed(2)} ₽/€</p>
+        <p className="text-xs text-white/55">Текущий курс EUR/RUB: {eurRubRate.toFixed(2)}</p>
       </div>
       <LandedCostCalculator baseRate={eurRubRate} />
       <div className="rounded-[32px] border border-white/10 bg-white/6 px-6 py-5 text-sm text-white/70">
         <p>
-          Результат носит справочный характер. Финальная стоимость подтверждается после проверки автомобиля и фиксации
-          договора. Поможем подобрать оптимальный маршрут и выбрать выгодный сценарий оплаты.
+          Результат носит ориентировочный характер. Точная сумма зависит от конкретной комплектации, ставок таможенных
+          пошлин и выбранного маршрута доставки. Команда B.I.C. проконсультирует и предоставит индивидуальный расчёт.
         </p>
       </div>
     </div>

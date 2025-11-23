@@ -2,146 +2,10 @@
 
 import * as React from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, ChevronDown, RotateCcw, Search } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import { BODY_TYPE_LABELS, FUEL_TYPE_LABELS, TRANSMISSION_LABELS } from "@/lib/constants";
-<<<<<<< ours
-
-interface CatalogFiltersProps {
-  bodyTypes: string[];
-  fuelTypes: string[];
-  transmissions: string[];
-  countries: { code: string; name: string }[];
-}
-
-const translations = {
-  filters: "\u0424\u0438\u043b\u044c\u0442\u0440\u044b",
-  reset: "\u0421\u0431\u0440\u043e\u0441\u0438\u0442\u044c",
-  body: "\u0422\u0438\u043f \u043a\u0443\u0437\u043e\u0432\u0430",
-  fuel: "\u0422\u0438\u043f \u0442\u043e\u043f\u043b\u0438\u0432\u0430",
-  transmission: "\u0422\u0440\u0430\u043d\u0441\u043c\u0438\u0441\u0441\u0438\u044f",
-  countries: "\u0421\u0442\u0440\u0430\u043d\u044b",
-  price: "\u0426\u0435\u043d\u0430 (EUR)",
-  priceFrom: "\u043e\u0442",
-  priceTo: "\u0434\u043e",
-  applying: "\u041f\u0440\u0438\u043c\u0435\u043d\u044f\u0435\u043c \u0444\u0438\u043b\u044c\u0442\u0440\u044b\u2026",
-};
-
-export const CatalogFilters: React.FC<CatalogFiltersProps> = ({ bodyTypes, fuelTypes, transmissions, countries }) => {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const [isPending, startTransition] = React.useTransition();
-
-  const getArray = React.useCallback(
-    (key: string) => {
-      const value = searchParams.getAll(key);
-      return new Set(value.flatMap((entry) => entry.split(".")));
-    },
-    [searchParams],
-  );
-
-  const toggleValue = (key: string, value: string) => {
-    startTransition(() => {
-      const params = new URLSearchParams(searchParams.toString());
-      const current = new Set(getArray(key));
-      if (current.has(value)) {
-        current.delete(value);
-      } else {
-        current.add(value);
-      }
-
-      params.delete(key);
-      current.forEach((item) => {
-        if (item) {
-          params.append(key, item);
-        }
-      });
-
-      router.push(`${pathname}?${params.toString()}`);
-    });
-  };
-
-  const setRange = (min?: string, max?: string) => {
-    startTransition(() => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (min) {
-        params.set("minPrice", min);
-      } else {
-        params.delete("minPrice");
-      }
-      if (max) {
-        params.set("maxPrice", max);
-      } else {
-        params.delete("maxPrice");
-      }
-      router.push(`${pathname}?${params.toString()}`);
-    });
-  };
-
-  const clearFilters = () => {
-    startTransition(() => {
-      router.push(pathname);
-    });
-  };
-
-  const selectedBodyTypes = getArray("bodyTypes");
-  const selectedFuelTypes = getArray("fuelTypes");
-  const selectedTransmissions = getArray("transmission");
-  const selectedCountries = getArray("countries");
-  const minPrice = searchParams.get("minPrice") ?? "";
-  const maxPrice = searchParams.get("maxPrice") ?? "";
-
-  return (
-    <aside className="space-y-6 rounded-[32px] border border-white/10 bg-white/4 p-6 text-white shadow-soft">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <SlidersHorizontal className="h-5 w-5 text-white/60" />
-          <span className="text-sm font-semibold uppercase tracking-[0.12em] text-white/60">
-            {translations.filters}
-          </span>
-        </div>
-        <button
-          type="button"
-          className="text-xs uppercase tracking-[0.1em] text-white/40 hover:text-white/70"
-          onClick={clearFilters}
-        >
-          {translations.reset}
-        </button>
-      </div>
-
-      <FilterGroup title={translations.body}>
-        {bodyTypes.map((item) => (
-          <CheckboxRow
-            key={item}
-            label={BODY_TYPE_LABELS[item as keyof typeof BODY_TYPE_LABELS] ?? item}
-            checked={selectedBodyTypes.has(item)}
-            onChange={() => toggleValue("bodyTypes", item)}
-          />
-        ))}
-      </FilterGroup>
-
-      <FilterGroup title={translations.fuel}>
-        {fuelTypes.map((item) => (
-          <CheckboxRow
-            key={item}
-            label={FUEL_TYPE_LABELS[item as keyof typeof FUEL_TYPE_LABELS] ?? item}
-            checked={selectedFuelTypes.has(item)}
-            onChange={() => toggleValue("fuelTypes", item)}
-          />
-        ))}
-      </FilterGroup>
-
-      <FilterGroup title={translations.transmission}>
-        {transmissions.map((item) => (
-          <CheckboxRow
-            key={item}
-            label={TRANSMISSION_LABELS[item as keyof typeof TRANSMISSION_LABELS] ?? item}
-            checked={selectedTransmissions.has(item)}
-            onChange={() => toggleValue("transmission", item)}
-=======
 import { cn, formatCurrency } from "@/lib/utils";
 
 type Range = { min: number; max: number };
@@ -218,6 +82,14 @@ export function CatalogFilters({ facets, eurRubRate }: { facets: CatalogFacetCon
   const router = useRouter();
   const [pending, startTransition] = React.useTransition();
   const [collapsed, setCollapsed] = React.useState(true);
+  const searchSuggestions = React.useMemo(() => {
+    const set = new Set<string>();
+    facets.brands.forEach((brand) => set.add(brand));
+    Object.entries(facets.modelsByBrand).forEach(([brand, models]) => {
+      models.forEach((model) => set.add(`${brand} ${model}`.trim()));
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, "ru"));
+  }, [facets.brands, facets.modelsByBrand]);
 
   const initialState = React.useMemo<FilterState>(() => {
     const currencyParam = searchParams.get("priceCurrency");
@@ -304,7 +176,7 @@ export function CatalogFilters({ facets, eurRubRate }: { facets: CatalogFacetCon
         router.push(`${pathname}?${params.toString()}`);
       });
     },
-    [eurRubRate, pathname, router, startTransition],
+    [eurRubRate, pathname, router],
   );
 
   const handleApply = () => updateParamUrl(state);
@@ -348,23 +220,23 @@ export function CatalogFilters({ facets, eurRubRate }: { facets: CatalogFacetCon
                   "rounded-full px-3 py-1 text-xs font-semibold transition",
                   state.priceCurrency === currency ? "bg-white text-black" : "text-white/70 hover:text-white",
                 )}
-                onClick={() =>
-                  setState((prev) => {
-                    const convert = (value?: number) => {
-                      if (value === undefined) return undefined;
-                      if (currency === prev.priceCurrency) return value;
-                      return currency === "RUB"
-                        ? Math.round(value * eurRubRate)
-                        : Math.max(0, Math.round(value / eurRubRate));
-                    };
-                    return {
-                      ...prev,
-                      priceCurrency: currency,
-                      priceMin: convert(prev.priceMin),
-                      priceMax: convert(prev.priceMax),
-                    };
-                  })
-                }
+                onClick={() => {
+                  const convert = (value?: number) => {
+                    if (value === undefined) return undefined;
+                    if (currency === state.priceCurrency) return value;
+                    return currency === "RUB"
+                      ? Math.round(value * eurRubRate)
+                      : Math.max(0, Math.round(value / eurRubRate));
+                  };
+                  const next = {
+                    ...state,
+                    priceCurrency: currency,
+                    priceMin: convert(state.priceMin),
+                    priceMax: convert(state.priceMax),
+                  };
+                  setState(next);
+                  updateParamUrl(next);
+                }}
               >
                 {currency}
               </button>
@@ -382,6 +254,8 @@ export function CatalogFilters({ facets, eurRubRate }: { facets: CatalogFacetCon
               placeholder="Mercedes GLE, Cayenne..."
               value={state.search}
               onChange={(value) => setState((prev) => ({ ...prev, search: value }))}
+              suggestions={searchSuggestions}
+              onSelectSuggestion={(value) => setState((prev) => ({ ...prev, search: value }))}
             />
             <SelectField
               label="Кузов"
@@ -416,8 +290,8 @@ export function CatalogFilters({ facets, eurRubRate }: { facets: CatalogFacetCon
             <ColorPicker
               label="Цвет"
               colors={facets.colors}
-              value={state.colors[0]}
-              onChange={(val) => setState((prev) => ({ ...prev, colors: val ? [val] : [] }))}
+              value={state.colors}
+              onChange={(vals) => setState((prev) => ({ ...prev, colors: vals }))}
             />
             <SelectField
               label="Бренд"
@@ -485,7 +359,7 @@ export function CatalogFilters({ facets, eurRubRate }: { facets: CatalogFacetCon
             />
           </div>
 
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             <RangeField
               label="Объём (л)"
               min={facets.engineRange.min || 1}
@@ -522,26 +396,25 @@ export function CatalogFilters({ facets, eurRubRate }: { facets: CatalogFacetCon
 }
 
 const COLOR_MAP: Record<string, string> = {
-  черный: "#000000",
   black: "#000000",
-  белый: "#ffffff",
+  "carbon black": "#0b0b0b",
   white: "#ffffff",
-  серый: "#6b7280",
+  "mineral white": "#f5f5f5",
   gray: "#6b7280",
-  серебристый: "#d1d5db",
+  grey: "#6b7280",
+  "crayon gray": "#4b5563",
+  "crayon grey": "#4b5563",
   silver: "#d1d5db",
-  красный: "#ef4444",
+  "metallic silver": "#d1d5db",
   red: "#ef4444",
-  синий: "#2563eb",
   blue: "#2563eb",
-  зеленый: "#16a34a",
   green: "#16a34a",
-  оранжевый: "#f97316",
   orange: "#f97316",
-  желтый: "#eab308",
   yellow: "#eab308",
-  коричневый: "#92400e",
   brown: "#92400e",
+  beige: "#d6c29c",
+  gold: "#d4af37",
+  "obsidian black": "#0c0c0c",
 };
 
 function colorToHex(color: string) {
@@ -565,111 +438,499 @@ function CountrySelect({
 }) {
   const selected = countries.find((c) => c.code === value);
   const flagUrl = value ? `https://flagcdn.com/w20/${value.toLowerCase()}.png` : null;
+  const [open, setOpen] = React.useState(false);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handler = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  React.useEffect(() => {
+    setOpen(false);
+  }, [value]);
+
+  const handleSelect = (code: string) => {
+    onChange(code);
+    setOpen(false);
+  };
 
   return (
     <label className="space-y-2 text-sm text-white/70">
       <span>{label}</span>
-      <div className="relative">
-        {flagUrl ? (
-          <img
-            src={flagUrl}
-            alt={selected?.name ?? value}
-            className="pointer-events-none absolute left-3 top-1/2 h-4 w-6 -translate-y-1/2 rounded-sm border border-white/20 object-cover"
->>>>>>> theirs
-          />
-        ))}
-      </FilterGroup>
-
-      <FilterGroup title={translations.countries}>
-        <div className="grid grid-cols-2 gap-2">
-          {countries.map((country) => (
-            <button
-              key={country.code}
-              type="button"
-              onClick={() => toggleValue("countries", country.code)}
-              className={cn(
-                "flex items-center gap-2 rounded-full border border-white/15 px-3 py-2 text-xs uppercase tracking-[0.1em] text-white/70 transition",
-                selectedCountries.has(country.code) && "border-brand-primary bg-brand-primary/20 text-white",
-              )}
-              title={country.name}
-            >
+      <div className="relative" ref={containerRef}>
+        <button
+          type="button"
+          onClick={() => setOpen((prev) => !prev)}
+          onBlur={(e) => {
+            if (!containerRef.current?.contains(e.relatedTarget as Node)) {
+              setOpen(false);
+            }
+          }}
+          className={cn(
+            "flex h-11 w-full items-center justify-between gap-3 rounded-full border border-white/15 bg-black/40 px-4 text-sm text-white transition focus:border-brand-primary focus:outline-none",
+            open && "border-brand-primary shadow-glow",
+          )}
+        >
+          <div className={cn("flex items-center", flagUrl ? "gap-2" : "gap-0")}>
+            {flagUrl ? (
               <img
-                src={`https://flagcdn.com/w20/${country.code.toLowerCase()}.png`}
-                alt={country.name}
+                src={flagUrl}
+                alt={selected?.name ?? value}
                 className="h-4 w-6 rounded-sm border border-white/20 object-cover"
               />
-              <span className="font-semibold">{country.code}</span>
-            </button>
-          ))}
-        </div>
-      </FilterGroup>
+            ) : null}
+            <span className="text-left text-sm text-white/80">
+              {value ? `${value} ${selected?.name ?? ""}` : "Все страны"}
+            </span>
+          </div>
+          <ChevronDown className={cn("h-4 w-4 text-white/60 transition", open && "rotate-180")} />
+        </button>
 
-      <FilterGroup title={translations.price}>
-        <div className="grid grid-cols-2 gap-2">
-          <input
-            type="number"
-            inputMode="numeric"
-            placeholder={translations.priceFrom}
-            defaultValue={minPrice}
-            onBlur={(event) => setRange(event.currentTarget.value, maxPrice)}
-            className="h-10 rounded-full border border-white/15 bg-black/40 px-4 text-xs text-white placeholder:text-white/40 focus:border-brand-primary focus:outline-none"
-          />
-          <input
-            type="number"
-            inputMode="numeric"
-            placeholder={translations.priceTo}
-            defaultValue={maxPrice}
-            onBlur={(event) => setRange(minPrice, event.currentTarget.value)}
-            className="h-10 rounded-full border border-white/15 bg-black/40 px-4 text-xs text-white placeholder:text-white/40 focus:border-brand-primary focus:outline-none"
-          />
-        </div>
-      </FilterGroup>
-
-      {isPending ? (
-        <div className="text-xs uppercase tracking-[0.1em] text-white/40">{translations.applying}</div>
-      ) : null}
-
-      <div className="flex flex-wrap gap-2">
-        {Array.from(selectedBodyTypes).map((item) => (
-          <Badge key={`body-${item}`} tone="outline" className="cursor-pointer" onClick={() => toggleValue("bodyTypes", item)}>
-            {BODY_TYPE_LABELS[item as keyof typeof BODY_TYPE_LABELS] ?? item}
-          </Badge>
-        ))}
-        {Array.from(selectedFuelTypes).map((item) => (
-          <Badge key={`fuel-${item}`} tone="outline" className="cursor-pointer" onClick={() => toggleValue("fuelTypes", item)}>
-            {FUEL_TYPE_LABELS[item as keyof typeof FUEL_TYPE_LABELS] ?? item}
-          </Badge>
-        ))}
-        {Array.from(selectedTransmissions).map((item) => (
-          <Badge key={`trans-${item}`} tone="outline" className="cursor-pointer" onClick={() => toggleValue("transmission", item)}>
-            {TRANSMISSION_LABELS[item as keyof typeof TRANSMISSION_LABELS] ?? item}
-          </Badge>
-        ))}
-        {Array.from(selectedCountries).map((item) => (
-          <Badge key={`country-${item}`} tone="outline" className="cursor-pointer" onClick={() => toggleValue("countries", item)}>
-            {item}
-          </Badge>
-        ))}
+        {open ? (
+          <div className="absolute z-40 mt-2 w-full overflow-hidden rounded-2xl border border-white/10 bg-black/90 shadow-soft backdrop-blur">
+            <div className="max-h-64 overflow-y-auto">
+              <button
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  handleSelect("");
+                }}
+                className="flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-white/80 hover:bg-white/5"
+              >
+                <span className="text-white">Все страны</span>
+              </button>
+              {countries.map((country) => (
+                <button
+                  key={country.code}
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    handleSelect(country.code);
+                  }}
+                  className={cn(
+                    "flex w-full items-center gap-3 px-4 py-2 text-left text-sm text-white/80 hover:bg-white/5",
+                    value === country.code && "bg-white/10 text-white",
+                  )}
+                >
+                  <img
+                    src={`https://flagcdn.com/w20/${country.code.toLowerCase()}.png`}
+                    alt={country.name}
+                    className="h-4 w-6 rounded-sm border border-white/20 object-cover"
+                  />
+                  <span className="font-semibold text-white">{country.code}</span>
+                  <span className="text-xs text-white/50">{country.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
       </div>
-    </aside>
+    </label>
   );
-};
+}
 
-const FilterGroup: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
-  <div className="space-y-3">
-    <h3 className="text-xs font-semibold uppercase tracking-[0.12em] text-white/50">{title}</h3>
-    <div className="space-y-2 text-sm text-white/75">{children}</div>
-  </div>
-);
+function ColorPicker({
+  label,
+  colors,
+  value,
+  onChange,
+}: {
+  label: string;
+  colors: string[];
+  value: string[];
+  onChange: (value: string[]) => void;
+}) {
+  const toggle = (color: string) => {
+    const exists = value.includes(color);
+    const next = exists ? value.filter((c) => c !== color) : [...value, color];
+    onChange(next);
+  };
 
-const CheckboxRow: React.FC<{ label: string; checked: boolean; onChange: () => void }> = ({ label, checked, onChange }) => (
-  <label className="flex cursor-pointer items-center justify-between rounded-full border border-white/10 bg-black/30 px-4 py-2 text-xs uppercase tracking-[0.1em] text-white/60 transition hover:border-white/30">
-    <span>{label}</span>
-    <input
-      type="checkbox"
-      className="h-4 w-4 rounded border-white/30 bg-transparent text-brand-primary focus:ring-brand-primary"
-      checked={checked}
-      onChange={onChange}
-    />
-  </label>
-);
+  const isAll = value.length === 0;
+
+  return (
+    <label className="space-y-2 text-sm text-white/70">
+      <span>{label}</span>
+      <div className="flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() => onChange([])}
+          className={cn(
+            "flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition",
+            isAll
+              ? "border-brand-primary bg-brand-primary/80 text-white shadow-glow"
+              : "border-white/20 bg-white/5 text-white/80 hover:border-brand-primary hover:text-white",
+          )}
+        >
+          <span>Все</span>
+        </button>
+        {colors.map((color) => {
+          const active = value.includes(color);
+          return (
+            <button
+              key={color}
+              type="button"
+              onClick={() => toggle(color)}
+              className={cn(
+                "flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-semibold transition",
+                active
+                  ? "border-brand-primary bg-brand-primary text-white shadow-glow"
+                  : "border-white/20 bg-white/5 text-white/80 hover:border-brand-primary hover:text-white",
+              )}
+            >
+              <span
+                className="h-4 w-4 rounded-full border border-white/30"
+                style={{ backgroundColor: colorToHex(color) }}
+              />
+              <span>{color}</span>
+            </button>
+          );
+        })}
+      </div>
+    </label>
+  );
+}
+
+function LabeledInput({
+  label,
+  icon,
+  placeholder,
+  value,
+  onChange,
+  suggestions,
+  onSelectSuggestion,
+}: {
+  label: string;
+  icon?: React.ReactNode;
+  placeholder?: string;
+  value: string;
+  onChange: (value: string) => void;
+  suggestions?: string[];
+  onSelectSuggestion?: (value: string) => void;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handler = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const filteredSuggestions = React.useMemo(() => {
+    if (!suggestions || suggestions.length === 0) return [];
+    if (!value.trim()) return suggestions.slice(0, 8);
+    const term = value.trim().toLowerCase();
+    return suggestions.filter((s) => s.toLowerCase().includes(term)).slice(0, 8);
+  }, [suggestions, value]);
+
+  const selectSuggestion = (next: string) => {
+    onSelectSuggestion?.(next);
+    setOpen(false);
+  };
+
+  return (
+    <label className="space-y-2 text-sm text-white/70">
+      <span>{label}</span>
+      <div className="relative" ref={containerRef}>
+        {icon ? <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2">{icon}</div> : null}
+        <input
+          type="text"
+          placeholder={placeholder}
+          value={value}
+          onChange={(e) => {
+            onChange(e.target.value);
+            if (suggestions && suggestions.length) setOpen(true);
+          }}
+          onFocus={() => suggestions && suggestions.length && setOpen(true)}
+          className={cn(
+            "h-11 w-full rounded-full border border-white/15 bg-black/40 pr-4 text-sm text-white placeholder:text-white/40 focus:border-brand-primary focus:outline-none",
+            icon ? "pl-10" : "pl-4",
+          )}
+        />
+        {open && filteredSuggestions.length > 0 ? (
+          <div className="absolute z-40 mt-2 w-full overflow-hidden rounded-2xl border border-white/10 bg-black/90 shadow-soft backdrop-blur">
+            <div className="max-h-64 overflow-y-auto">
+              {filteredSuggestions.map((item) => (
+                <button
+                  key={item}
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    selectSuggestion(item);
+                  }}
+                  className="flex w-full items-center px-4 py-2 text-left text-sm text-white/80 hover:bg-white/5"
+                >
+                  {item}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </label>
+  );
+}
+
+function SelectField<T extends string>({
+  label,
+  value,
+  onChange,
+  options,
+  labels,
+  renderOption,
+  disabled,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: T[];
+  labels?: Record<string, string>;
+  renderOption?: (option: T) => string;
+  disabled?: boolean;
+}) {
+  const [open, setOpen] = React.useState(false);
+  const containerRef = React.useRef<HTMLDivElement>(null);
+  const placeholder = "Все";
+  const displayLabel = value
+    ? renderOption
+      ? renderOption(value as T)
+      : labels?.[value] ?? value
+    : placeholder;
+
+  React.useEffect(() => {
+    const handler = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  React.useEffect(() => {
+    setOpen(false);
+  }, [value]);
+
+  const handleSelect = (val: string) => {
+    onChange(val);
+    setOpen(false);
+  };
+
+  return (
+    <label className="space-y-2 text-sm text-white/70">
+      <span>{label}</span>
+      <div className="relative" ref={containerRef}>
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() => !disabled && setOpen((prev) => !prev)}
+          onBlur={(e) => {
+            if (!containerRef.current?.contains(e.relatedTarget as Node)) {
+              setOpen(false);
+            }
+          }}
+          className={cn(
+            "flex h-11 w-full items-center justify-between gap-3 rounded-full border border-white/15 bg-black/40 px-4 text-sm text-white transition focus:border-brand-primary focus:outline-none",
+            open && !disabled && "border-brand-primary shadow-glow",
+            disabled && "cursor-not-allowed opacity-50",
+          )}
+        >
+          <span className="text-left text-sm text-white/80">{displayLabel}</span>
+          <ChevronDown className={cn("h-4 w-4 text-white/60 transition", open && "rotate-180")} />
+        </button>
+        {open && !disabled ? (
+          <div className="absolute z-40 mt-2 w-full overflow-hidden rounded-2xl border border-white/10 bg-black/90 shadow-soft backdrop-blur">
+            <div className="max-h-64 overflow-y-auto">
+              <button
+                type="button"
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  handleSelect("");
+                }}
+                className={cn(
+                  "flex w-full items-center px-4 py-2 text-left text-sm text-white/80 hover:bg-white/5",
+                  value === "" && "bg-white/10 text-white",
+                )}
+              >
+                Все
+              </button>
+              {options.map((option) => {
+                const optionLabel = renderOption ? renderOption(option) : labels?.[option] ?? option;
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      handleSelect(option);
+                    }}
+                    className={cn(
+                      "flex w-full items-center px-4 py-2 text-left text-sm text-white/80 hover:bg-white/5",
+                      value === option && "bg-white/10 text-white",
+                    )}
+                  >
+                    {optionLabel}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
+      </div>
+    </label>
+  );
+}
+
+function RangeField({
+  label,
+  min,
+  max,
+  step,
+  from,
+  to,
+  onChange,
+  formatValue,
+}: {
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  from?: number;
+  to?: number;
+  onChange: (range: { from?: number; to?: number }) => void;
+  formatValue?: (value: number) => string;
+}) {
+  const displayFrom = from ?? min;
+  const displayTo = to ?? max;
+  const format = formatValue ?? ((v) => v.toString());
+  const span = Math.max(max - min, step);
+  const toPercent = (value: number) => Math.min(100, Math.max(0, ((value - min) / span) * 100));
+  const clamp = (val: number) => Math.min(max, Math.max(min, val));
+  const digits = (val: number) => String(Math.abs(val)).length;
+  const minDigits = digits(min);
+  const maxDigits = digits(max);
+
+  const normalizeInput = (val: number, peer: number | undefined, isFrom: boolean) => {
+    const len = digits(val);
+    const belowMin = val < min;
+    const aboveMax = val > max;
+
+    // Let the user type partial numbers (e.g., starting with "2" for 2024) until length is comparable.
+    if (belowMin && len < minDigits) return val;
+    if (aboveMax && len < maxDigits) return val;
+
+    let next = clamp(val);
+    if (peer !== undefined) {
+      next = isFrom ? Math.min(next, peer) : Math.max(next, peer);
+    }
+    return next;
+  };
+
+  const clampFinal = (val: number | undefined, peer: number | undefined, isFrom: boolean) => {
+    if (val === undefined || Number.isNaN(val)) return undefined;
+    let next = clamp(val);
+    if (peer !== undefined) {
+      next = isFrom ? Math.min(next, peer) : Math.max(next, peer);
+    }
+    return next;
+  };
+
+  return (
+    <div className="space-y-3 text-sm text-white/70">
+      <span>{label}</span>
+      <div className="flex items-center gap-2">
+        <input
+          type="number"
+          min={min}
+          max={max}
+          value={from ?? ""}
+          placeholder={String(min)}
+          onChange={(e) => {
+            const val = e.target.value ? Number(e.target.value) : undefined;
+            if (val === undefined) {
+              onChange({ from: undefined, to });
+              return;
+            }
+            const next = normalizeInput(val, to, true);
+            onChange({ from: next, to });
+          }}
+          onBlur={() => {
+            const next = clampFinal(from, to, true);
+            if (next !== from) onChange({ from: next, to });
+          }}
+          className="number-input h-11 w-full rounded-full border border-white/15 bg-black/40 px-4 text-sm text-white placeholder:text-white/40 focus:border-brand-primary focus:outline-none"
+        />
+        <span className="text-white/40">-</span>
+        <input
+          type="number"
+          min={min}
+          max={max}
+          value={to ?? ""}
+          placeholder={String(max)}
+          onChange={(e) => {
+            const val = e.target.value ? Number(e.target.value) : undefined;
+            if (val === undefined) {
+              onChange({ from, to: undefined });
+              return;
+            }
+            const next = normalizeInput(val, from, false);
+            onChange({ from, to: next });
+          }}
+          onBlur={() => {
+            const next = clampFinal(to, from, false);
+            if (next !== to) onChange({ from, to: next });
+          }}
+          className="number-input h-11 w-full rounded-full border border-white/15 bg-black/40 px-4 text-sm text-white placeholder:text-white/40 focus:border-brand-primary focus:outline-none"
+        />
+      </div>
+      <div className="space-y-2">
+        <div className="relative h-4 px-3 pt-1">
+          <div className="absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 rounded-full bg-white/10" />
+          <div
+            className="absolute top-1/2 h-2 -translate-y-1/2 rounded-full bg-brand-primary"
+            style={{ left: `${toPercent(displayFrom)}%`, right: `${100 - toPercent(displayTo)}%` }}
+          />
+          <input
+            type="range"
+            min={min}
+            max={max}
+            step={step}
+            value={displayFrom}
+            onChange={(e) => {
+              const next = Math.min(Math.max(Number(e.target.value), min), Math.max(displayTo - step, min));
+              onChange({ from: next, to });
+            }}
+            className="range-input z-20"
+          />
+          <input
+            type="range"
+            min={min}
+            max={max}
+            step={step}
+            value={displayTo}
+            onChange={(e) => {
+              const next = Math.max(Math.min(Number(e.target.value), max), Math.min(displayFrom + step, max));
+              onChange({ from, to: next });
+            }}
+            className="range-input z-30"
+          />
+        </div>
+        <div className="flex justify-between text-[11px] text-white/50">
+          <span>{format(displayFrom)}</span>
+          <span>{format(displayTo)}</span>
+        </div>
+      </div>
+    </div>
+  );
+}

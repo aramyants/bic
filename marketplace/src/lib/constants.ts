@@ -75,7 +75,7 @@ export const FUEL_TYPE_LABELS: Record<(typeof FUEL_TYPES)[number], string> = {
   Diesel: "Дизель",
   Hybrid: "Гибрид",
   Electric: "Электро",
-  LPG: "ГБО",
+  LPG: "Газ",
 };
 
 export const UNIT_LABELS = {

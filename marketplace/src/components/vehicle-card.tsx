@@ -2,73 +2,96 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Heart } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink, Heart } from "lucide-react";
+import * as React from "react";
 
-import type { VehicleWithRelations } from "@/server/vehicle-service";
-import {
-  getBodyTypeLabel,
-  getFuelTypeLabel,
-  getTransmissionLabel,
-  UNIT_LABELS,
-} from "@/lib/constants";
+import { getFuelTypeLabel, getTransmissionLabel, UNIT_LABELS } from "@/lib/constants";
+import type { VehicleCardModel } from "@/lib/vehicle-card-model";
 import { cn, formatCurrency } from "@/lib/utils";
 import { useFavorites } from "@/hooks/use-favorites";
-import { Badge } from "@/components/ui/badge";
 
 interface VehicleCardProps {
-  vehicle: VehicleWithRelations;
+  vehicle: VehicleCardModel;
   eurRubRate: number;
+  priceCurrency?: "EUR" | "RUB";
 }
 
-export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, eurRubRate }) => {
+export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, eurRubRate, priceCurrency = "EUR" }) => {
   const { isFavorite, toggleFavorite } = useFavorites();
   const isFav = isFavorite(vehicle.id);
 
-  const basePriceRub = formatCurrency(Math.round(vehicle.basePriceEur * eurRubRate), "RUB");
+  const basePriceRubValue = vehicle.basePriceRub ?? Math.round(vehicle.basePriceEur * eurRubRate);
+  const basePriceRub = formatCurrency(basePriceRubValue, "RUB");
   const mileageUnit = UNIT_LABELS[vehicle.mileageUnit as keyof typeof UNIT_LABELS] ?? vehicle.mileageUnit ?? "км";
+  const linkHref = `/catalog/${vehicle.slug}`;
+  const isExternal = false;
+  const title =
+    vehicle.title && vehicle.title !== "undefined undefined"
+      ? vehicle.title
+      : `${vehicle.brand || "Авто"} ${vehicle.model || ""}`.trim();
+  const description = vehicle.shortDescription ?? "Описание появится позже.";
+
+  const photos = vehicle.gallery?.length
+    ? vehicle.gallery
+    : vehicle.primaryImage
+      ? [vehicle.primaryImage]
+      : [{ url: "/logo.png" }];
+  const [photoIndex, setPhotoIndex] = React.useState(0);
+
+  const next = () => setPhotoIndex((prev) => (prev + 1) % photos.length);
+  const prev = () => setPhotoIndex((prev) => (prev - 1 + photos.length) % photos.length);
 
   return (
     <div className="group relative flex h-full flex-col overflow-hidden rounded-[36px] border border-white/10 bg-white/8 backdrop-blur-xl shadow-soft transition hover:shadow-strong">
       <div className="relative h-64 overflow-hidden">
-        {vehicle.primaryImage ? (
-          <Image
-            src={vehicle.primaryImage.url}
-            alt={vehicle.title}
-            fill
-            sizes="(max-width:768px) 100vw, 33vw"
-            className="object-cover transition duration-500 group-hover:scale-105"
-            priority
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center bg-black/40 text-sm text-white/50">Фото появится позже</div>
+        <Image
+          src={photos[photoIndex].url}
+          alt={vehicle.title}
+          fill
+          sizes="(max-width:768px) 100vw, 33vw"
+          className="object-cover transition duration-500 group-hover:scale-105"
+          priority
+        />
+        {photos.length > 1 && (
+          <>
+            <button
+              className="absolute left-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/55 p-2 text-white transition hover:bg-black/70"
+              onClick={prev}
+              aria-label="Предыдущее фото"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button
+              className="absolute right-3 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/55 p-2 text-white transition hover:bg-black/70"
+              onClick={next}
+              aria-label="Следующее фото"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </>
         )}
+
         <button
           onClick={() => toggleFavorite(vehicle.id)}
           className={cn(
             "absolute right-5 top-5 flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-black/55 text-white transition",
             isFav && "border-brand-primary bg-brand-primary text-white",
           )}
-          aria-label={isFav ? "Удалить из избранного" : "Добавить в избранное"}
+          aria-label={isFav ? "Убрать из избранного" : "Добавить в избранное"}
         >
           <Heart className={cn("h-5 w-5", isFav && "fill-current")} />
         </button>
-        <div className="absolute left-5 top-5 flex gap-2">
-          <Badge tone="outline">{vehicle.country}</Badge>
-          {vehicle.bodyType ? <Badge tone="default">{getBodyTypeLabel(vehicle.bodyType)}</Badge> : null}
-        </div>
       </div>
       <div className="flex flex-1 flex-col gap-5 p-6">
         <div className="space-y-2">
-          <div className="text-xs text-white/55">{vehicle.brand}</div>
-          <h3 className="text-lg font-semibold text-white">{vehicle.title}</h3>
-          <p className="text-sm text-white/65">
-            {vehicle.shortDescription ?? "Описание будет добавлено после подготовки информации."}
-          </p>
+          <div className="text-xs text-white/55">{vehicle.brand || "Марка неизвестна"}</div>
+          <h3 className="text-lg font-semibold text-white">{title}</h3>
+          <p className="text-sm text-white/65">{description}</p>
         </div>
         <div className="grid grid-cols-2 gap-3 text-xs text-white/55">
           <div>
             <span className="block text-white/40">Год</span>
-            <span className="text-white/85">{vehicle.year}</span>
+            <span className="text-white/85">{vehicle.year || "-"}</span>
           </div>
           <div>
             <span className="block text-white/40">Пробег</span>
@@ -81,18 +104,22 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, eurRubRate })
             <span className="text-white/85">{getFuelTypeLabel(vehicle.fuelType)}</span>
           </div>
           <div>
-            <span className="block text-white/40">Трансмиссия</span>
+            <span className="block text-white/40">Коробка</span>
             <span className="text-white/85">{getTransmissionLabel(vehicle.transmission)}</span>
           </div>
         </div>
         <div className="mt-auto flex items-end justify-between">
           <div>
             <div className="text-xs text-white/45">Цена</div>
-            <div className="text-xl font-semibold text-white">{formatCurrency(vehicle.basePriceEur, "EUR")}</div>
-            <div className="text-xs text-white/55">≈ {basePriceRub}</div>
+            <div className="text-xl font-semibold text-white">
+              {priceCurrency === "RUB" ? basePriceRub : formatCurrency(vehicle.basePriceEur, "EUR")}
+            </div>
+            <div className="text-xs text-white/55">
+              ≈ {priceCurrency === "RUB" ? formatCurrency(vehicle.basePriceEur, "EUR") : basePriceRub}
+            </div>
           </div>
           <Link
-            href={`/catalog/${vehicle.slug}`}
+            href={linkHref}
             className="inline-flex h-12 items-center justify-center rounded-full bg-brand-primary px-6 text-xs font-semibold text-white transition hover:bg-brand-primary-strong"
           >
             Подробнее

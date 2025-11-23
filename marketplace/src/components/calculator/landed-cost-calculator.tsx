@@ -66,7 +66,7 @@ export const LandedCostCalculator: React.FC<LandedCostCalculatorProps> = ({ base
       <div className="space-y-4">
         <NumericField
           id="baseEur"
-          label="Стоимость автомобиля, €"
+          label="Стоимость авто, €"
           value={form.baseEur}
           required
           step="100"
@@ -74,7 +74,7 @@ export const LandedCostCalculator: React.FC<LandedCostCalculatorProps> = ({ base
         />
         <NumericField
           id="rate"
-          label="Курс ЦБ, ₽ за €"
+          label="Курс EUR/RUB"
           value={form.rate}
           required
           step="0.1"
@@ -129,11 +129,11 @@ export const LandedCostCalculator: React.FC<LandedCostCalculatorProps> = ({ base
         </div>
       </div>
       <div className="space-y-5 rounded-[28px] border border-white/12 bg-white/6 p-5">
-        <h3 className="text-lg font-semibold text-white">Разбивка расходов</h3>
+        <h3 className="text-lg font-semibold text-white">Расчёт полной стоимости</h3>
         <div className="space-y-3 text-sm text-white/75">
-          <ResultRow label="База в рублях" value={result.baseRub} />
+          <ResultRow label="Цена в руб." value={result.baseRub} />
           <ResultRow label="Логистика" value={form.logistics} />
-          <ResultRow label="Таможенная пошлина" value={result.duty} />
+          <ResultRow label="Пошлина" value={result.duty} />
           <ResultRow label="Акциз" value={form.excise} />
           <ResultRow label="Утильсбор" value={form.recycling} />
           <ResultRow label="НДС" value={result.vat} />
@@ -141,7 +141,7 @@ export const LandedCostCalculator: React.FC<LandedCostCalculatorProps> = ({ base
           <ResultRow label="Комиссия B.I.C." value={result.commission} />
         </div>
         <div className="rounded-3xl border border-brand-primary/35 bg-brand-primary/15 px-4 py-4 text-white">
-          <div className="text-xs text-white/70">Итого к оплате</div>
+          <div className="text-xs text-white/70">Итоговая стоимость</div>
           <div className="text-2xl font-semibold">{formatCurrency(result.total, "RUB")}</div>
         </div>
       </div>
