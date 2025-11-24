@@ -15,18 +15,21 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Copy Next standalone output (server.js, .next, etc.)
+# Next standalone server output
 COPY --from=deps /app/.next/standalone ./
 
 # Static assets
 COPY --from=deps /app/.next/static ./.next/static
 COPY --from=deps /app/public ./public
 
-# IMPORTANT: bring full node_modules so scripts can use dotenv, drizzle, etc.
+# Full node_modules so scripts can use drizzle, dotenv, etc.
 COPY --from=deps /app/node_modules ./node_modules
 
 # Migration / seed scripts
 COPY --from=deps /app/scripts ./scripts
+
+# Drizzle migrations + meta/_journal.json
+COPY --from=deps /app/drizzle ./drizzle
 
 EXPOSE 3000
 CMD ["node", "server.js"]
