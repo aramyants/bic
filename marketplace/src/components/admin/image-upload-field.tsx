@@ -3,7 +3,6 @@
 import { useCallback, useRef, useState } from "react";
 import clsx from "clsx";
 import { Loader2, UploadCloud, X } from "lucide-react";
-import Image from "next/image";
 
 import { ALLOWED_IMAGE_TYPES, MAX_GALLERY_IMAGES, MAX_UPLOAD_SIZE_BYTES, formatBytes } from "@/lib/uploads";
 
@@ -14,6 +13,8 @@ interface ImageUploadFieldProps {
   onChange: (urls: string[]) => void;
   primaryValue?: string | null;
   onPrimaryChange?: (url: string | null) => void;
+  maxImages?: number;
+  allowUrlInput?: boolean;
 }
 
 const ACCEPT_LABEL = "image/png,image/jpeg,image/webp,image/gif,image/avif";
@@ -25,11 +26,14 @@ export function ImageUploadField({
   onChange,
   primaryValue,
   onPrimaryChange,
+  maxImages = MAX_GALLERY_IMAGES,
+  allowUrlInput = true,
 }: ImageUploadFieldProps) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [urlValue, setUrlValue] = useState("");
 
   const resetPrimaryIfNeeded = useCallback(
     (next: string[]) => {
@@ -52,11 +56,11 @@ export function ImageUploadField({
       if (!urls.length) {
         return;
       }
-      const next = [...value, ...urls];
+      const next = [...value, ...urls].slice(0, maxImages);
       onChange(next);
       resetPrimaryIfNeeded(next);
     },
-    [onChange, resetPrimaryIfNeeded, value],
+    [onChange, resetPrimaryIfNeeded, value, maxImages],
   );
 
   const performUpload = useCallback(
@@ -65,9 +69,9 @@ export function ImageUploadField({
         return;
       }
 
-      const allowedSlots = MAX_GALLERY_IMAGES - value.length;
+      const allowedSlots = maxImages - value.length;
       if (allowedSlots <= 0) {
-        setError(`You can upload up to ${MAX_GALLERY_IMAGES} images.`);
+        setError(`You can upload up to ${maxImages} images.`);
         return;
       }
 
@@ -107,9 +111,7 @@ export function ImageUploadField({
 
           uploadedUrls.push(payload.url);
         } catch (uploadError) {
-          errors.push(
-            uploadError instanceof Error ? uploadError.message : "Failed to upload file.",
-          );
+          errors.push(uploadError instanceof Error ? uploadError.message : "Failed to upload file.");
         }
       }
 
@@ -120,7 +122,7 @@ export function ImageUploadField({
         setError(errors[0]);
       }
     },
-    [value.length, handleUploaded],
+    [value.length, handleUploaded, maxImages],
   );
 
   const onDrop = useCallback(
@@ -148,6 +150,38 @@ export function ImageUploadField({
     resetPrimaryIfNeeded(next);
   };
 
+  const addFromUrl = useCallback(() => {
+    const trimmed = urlValue.trim();
+    if (!trimmed) {
+      setError("Paste an image link first.");
+      return;
+    }
+    if (value.length >= maxImages) {
+      setError(`You can upload up to ${maxImages} images.`);
+      return;
+    }
+    if (value.includes(trimmed)) {
+      setError("This image is already added.");
+      return;
+    }
+
+    const isValidLink =
+      trimmed.startsWith("http://") ||
+      trimmed.startsWith("https://") ||
+      trimmed.startsWith("/");
+
+    if (!isValidLink) {
+      setError("Use an absolute URL (https://) or a relative /uploads/ link.");
+      return;
+    }
+
+    const next = [...value, trimmed].slice(0, maxImages);
+    onChange(next);
+    resetPrimaryIfNeeded(next);
+    setUrlValue("");
+    setError(null);
+  }, [urlValue, value, onChange, maxImages, resetPrimaryIfNeeded]);
+
   return (
     <div className="space-y-3 text-sm text-white/70">
       <div>
@@ -157,7 +191,7 @@ export function ImageUploadField({
         {description ? <p className="mt-1 text-xs text-white/45">{description}</p> : null}
         <p className="mt-1 text-xs text-white/40">
           Formats: JPG, PNG, WEBP, GIF, AVIF · up to {formatBytes(MAX_UPLOAD_SIZE_BYTES)} per file · max{" "}
-          {MAX_GALLERY_IMAGES} images.
+          {maxImages} images.
         </p>
       </div>
 
@@ -209,6 +243,25 @@ export function ImageUploadField({
         />
       </div>
 
+      {allowUrlInput ? (
+        <div className="flex flex-col gap-2 rounded-3xl border border-white/10 bg-black/25 p-3 sm:flex-row sm:items-center">
+          <input
+            type="url"
+            placeholder="https://example.com/logo.png or /uploads/logo.png"
+            value={urlValue}
+            onChange={(event) => setUrlValue(event.target.value)}
+            className="h-11 w-full rounded-2xl border border-white/15 bg-black/40 px-4 text-sm text-white placeholder:text-white/40 focus:border-brand-primary focus:outline-none"
+          />
+          <button
+            type="button"
+            onClick={addFromUrl}
+            className="inline-flex h-11 items-center justify-center rounded-2xl bg-brand-primary px-4 text-xs font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-brand-primary-strong"
+          >
+            Add URL
+          </button>
+        </div>
+      ) : null}
+
       {error ? <p className="text-xs text-red-400">{error}</p> : null}
 
       {value.length ? (
@@ -220,12 +273,11 @@ export function ImageUploadField({
                 key={url}
                 className="group relative h-48 overflow-hidden rounded-3xl border border-white/15 bg-black/40"
               >
-                <Image
+                <img
                   src={url}
-                  alt="Uploaded vehicle photo"
-                  fill
-                  sizes="(min-width: 1024px) 25vw, (min-width: 768px) 50vw, 100vw"
-                  className="object-cover"
+                  alt="Uploaded media"
+                  className="absolute inset-0 h-full w-full object-cover"
+                  loading="lazy"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 transition group-hover:opacity-100" />
                 <div className="absolute top-2 right-2 flex gap-2">

@@ -4,9 +4,9 @@ export default async function AdminDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-semibold text-white">Обзор</h1>
-            <p className="text-sm text-white/60">
+          <p className="text-sm text-white/60">
             Добро пожаловать в панель администратора B.I.C. Управляйте каталогом, калькулятором и отзывами через меню слева или выберите нужный раздел ниже.
-            </p>
+          </p>
         </div>
       </div>
 
@@ -15,6 +15,8 @@ export default async function AdminDashboard() {
           { title: "Каталог", description: "Создавайте и редактируйте автомобили", href: "/admin/vehicles" },
           { title: "Калькулятор", description: "Настройка ставок и логистики", href: "/admin/calculator" },
           { title: "Отзывы", description: "Публикуйте отзывы клиентов", href: "/admin/testimonials" },
+          { title: "Бренды на главной", description: "Управляйте каруселью логотипов и партнёров", href: "/admin/brand-logos" },
+
         ].map((item) => (
           <a
             key={item.href}

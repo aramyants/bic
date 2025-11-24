@@ -337,6 +337,25 @@ export const testimonials = pgTable('testimonials', {
 export type Testimonial = typeof testimonials.$inferSelect;
 export type NewTestimonial = typeof testimonials.$inferInsert;
 
+// Brand logos for homepage carousel
+export const brandLogos = pgTable('brand_logos', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  name: text('name').notNull(),
+  logoUrl: text('logo_url').notNull(),
+  href: text('href'),
+  isActive: boolean('is_active').notNull().default(true),
+  sortOrder: integer('sort_order').notNull().default(0),
+  createdAt: timestamp('created_at', { withTimezone: false })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: false })
+    .defaultNow()
+    .notNull(),
+});
+
+export type BrandLogo = typeof brandLogos.$inferSelect;
+export type NewBrandLogo = typeof brandLogos.$inferInsert;
+
 // Calculator Configuration
 export const calculatorConfig = pgTable('calculator_config', {
   id: uuid('id').defaultRandom().primaryKey(),

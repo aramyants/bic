@@ -62,6 +62,22 @@ export async function getFeaturedVehicles(limit = 6) {
   return rows.map(transformVehicle);
 }
 
+export async function getAdminVehicles() {
+  const rows = await db.query.vehicles.findMany({
+    orderBy: desc(vehicles.createdAt),
+    with: {
+      images: {
+        orderBy: (fields, { asc }) => asc(fields.sortOrder),
+      },
+      features: true,
+      specifications: true,
+      markets: true,
+    },
+  });
+
+  return rows.map(transformVehicle);
+}
+
 export async function getVehicles(filter: VehicleFilter = {}) {
   const expressions = [eq(vehicles.status, "published")];
 

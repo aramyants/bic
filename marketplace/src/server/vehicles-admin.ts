@@ -158,6 +158,7 @@ export async function createVehicleAction(
       shortDescription: parsed.shortDescription ?? null,
       originalListingUrl: parsed.originalListingUrl ?? null,
       thumbnailUrl: parsed.thumbnailUrl ?? null,
+      status: "published",
     };
 
     await db.transaction(async (tx) => {
@@ -292,6 +293,7 @@ export async function updateVehicleAction(
           shortDescription: parsed.shortDescription ?? null,
           originalListingUrl: parsed.originalListingUrl ?? null,
           thumbnailUrl: parsed.thumbnailUrl ?? null,
+          status: existing.status ?? "published",
         })
         .where(eq(vehicles.id, id));
 

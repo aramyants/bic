@@ -6,7 +6,7 @@ import {
   type NewTestimonial,
   type Testimonial,
 } from '@/db/schema';
-import { desc, eq } from 'drizzle-orm';
+import { asc, desc, eq } from 'drizzle-orm';
 
 export async function getPublishedTestimonials(): Promise<Testimonial[]> {
   try {
@@ -14,7 +14,7 @@ export async function getPublishedTestimonials(): Promise<Testimonial[]> {
       .select()
       .from(testimonials)
       .where(eq(testimonials.isPublished, true))
-      .orderBy(testimonials.sortOrder, desc(testimonials.createdAt));
+      .orderBy(asc(testimonials.sortOrder), desc(testimonials.createdAt));
     return result;
   } catch (error) {
     console.error("[testimonials] table unavailable", error);
@@ -27,7 +27,7 @@ export async function getAllTestimonials(): Promise<Testimonial[]> {
     const result = await db
       .select()
       .from(testimonials)
-      .orderBy(testimonials.sortOrder, desc(testimonials.createdAt));
+      .orderBy(asc(testimonials.sortOrder), desc(testimonials.createdAt));
     return result;
   } catch (error) {
     console.error("[testimonials] table unavailable", error);

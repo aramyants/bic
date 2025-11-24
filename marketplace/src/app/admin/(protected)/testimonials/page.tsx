@@ -49,9 +49,17 @@ export default async function TestimonialsPage() {
               <tr key={testimonial.id} className="transition hover:bg-white/5">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-sm font-semibold text-white">
-                      {testimonial.name[0]}
-                    </div>
+                    {testimonial.avatar ? (
+                      <img
+                        src={testimonial.avatar}
+                        alt={testimonial.name}
+                        className="h-12 w-12 rounded-full object-cover ring-2 ring-white/15"
+                      />
+                    ) : (
+                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-sm font-semibold text-white">
+                        {testimonial.name[0]}
+                      </div>
+                    )}
                     <div>
                       <div className="font-medium text-white">
                         {testimonial.name}

@@ -3,6 +3,7 @@
 import { Star } from 'lucide-react';
 import * as React from 'react';
 
+import { ImageUploadField } from '@/components/admin/image-upload-field';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,6 +16,9 @@ interface TestimonialFormProps {
 
 export function TestimonialForm({ action, initialData }: TestimonialFormProps) {
   const [rating, setRating] = React.useState(initialData?.rating ?? 5);
+  const [avatar, setAvatar] = React.useState<string[]>(
+    initialData?.avatar ? [initialData.avatar] : []
+  );
 
   return (
     <form action={action} className="space-y-6">
@@ -40,6 +44,21 @@ export function TestimonialForm({ action, initialData }: TestimonialFormProps) {
               placeholder="Москва, Россия"
             />
           </div>
+        </div>
+
+        <div className="mt-6 space-y-3">
+          <div className="space-y-1">
+            <Label>Фото / аватар</Label>
+            <p className="text-xs text-white/50">Опционально: загрузите файл или вставьте ссылку на портрет.</p>
+          </div>
+          <ImageUploadField
+            label="Изображение"
+            description="Поддерживается загрузка или ссылка (https:// или /uploads/...)."
+            value={avatar}
+            onChange={(urls) => setAvatar(urls.slice(0, 1))}
+            maxImages={1}
+          />
+          <input type="hidden" name="avatar" value={avatar[0] ?? ''} />
         </div>
 
         <div className="mt-6 space-y-2">

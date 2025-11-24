@@ -1,10 +1,10 @@
 import Link from "next/link";
 
-import { getVehicles } from "@/server/vehicle-service";
+import { getAdminVehicles } from "@/server/vehicle-service";
 import { formatCurrency } from "@/lib/utils";
 
 export default async function VehiclesPage() {
-  const vehicles = await getVehicles();
+  const vehicles = await getAdminVehicles();
 
   return (
     <div className="space-y-8">

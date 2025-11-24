@@ -128,7 +128,7 @@ export function VehicleForm({ action, defaultValues = {}, submitLabel = "Save" }
 
       <ImageUploadField
         label="Галерея"
-        description="Вставьте ссылки на изображения, по одной в строке. Первое станет обложкой."
+        description="Загрузите фото или добавьте прямые ссылки; первое станет обложкой."
         value={galleryImages}
         onChange={setGalleryImages}
         primaryValue={coverImage}

@@ -15,10 +15,13 @@ export default function NewTestimonialPage() {
     const rating = Number.parseInt(formData.get('rating') as string);
     const isPublished = formData.get('isPublished') === 'on';
     const sortOrder = Number.parseInt(formData.get('sortOrder') as string) || 0;
+    const avatarRaw = (formData.get('avatar') as string) ?? '';
+    const avatar = avatarRaw.trim() || null;
 
     await createTestimonial({
       name,
       location: location || null,
+      avatar,
       content,
       rating,
       isPublished,

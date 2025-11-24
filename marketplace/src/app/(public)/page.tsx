@@ -16,6 +16,7 @@ import Image from 'next/image';
 
 import { ContactForm } from '@/components/contact-form';
 import { LandedCostCalculator } from '@/components/calculator/landed-cost-calculator';
+import { TestimonialsCarousel } from '@/components/testimonials-carousel';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { VehicleCard } from '@/components/vehicle-card';
@@ -23,6 +24,8 @@ import { COUNTRIES } from '@/lib/constants';
 import { toCalculatorSettings, type CalculatorSettings } from '@/lib/calculator';
 import { getActiveCalculatorConfig } from '@/server/calculator-service';
 import { getEurRubRate } from '@/server/exchange-service';
+import { getActiveBrandLogos } from '@/server/brand-logos-service';
+import { getPublishedTestimonials } from '@/server/testimonials-service';
 import { getFeaturedVehicles } from '@/server/vehicle-service';
 import { RevealOnScroll } from '@/components/reveal-on-scroll';
 
@@ -31,10 +34,12 @@ export default async function LandingPage({
 }: {
   searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const [featuredVehicles, eurRubRate, calculatorConfig] = await Promise.all([
+  const [featuredVehicles, eurRubRate, calculatorConfig, testimonials, brandLogos] = await Promise.all([
     getFeaturedVehicles(3),
     getEurRubRate().catch(() => 100),
     getActiveCalculatorConfig().catch(() => null),
+    getPublishedTestimonials().catch(() => []),
+    getActiveBrandLogos().catch(() => []),
   ]);
   const calculatorSettings = toCalculatorSettings(calculatorConfig);
 
@@ -64,6 +69,7 @@ export default async function LandingPage({
       )}
       <HeroSection eurRubRate={eurRubRate} />
       <StatsStrip eurRubRate={eurRubRate} />
+      <BrandLogosSection logos={brandLogos} />
       <FeaturedCatalog vehicles={featuredVehicles} eurRubRate={eurRubRate} />
       <CalculatorSection
         eurRubRate={eurRubRate}
@@ -71,6 +77,7 @@ export default async function LandingPage({
       />
       <CountriesSection />
       <ProcessSection />
+      <TestimonialsSection testimonials={testimonials} />
       <ContactCta />
     </div>
   );
@@ -330,6 +337,69 @@ function CalculatorSection({
   );
 }
 
+function BrandLogosSection({
+  logos,
+}: {
+  logos: Awaited<ReturnType<typeof getActiveBrandLogos>>;
+}) {
+  if (!logos.length) {
+    return null;
+  }
+
+  const marqueeItems = [...logos, ...logos];
+  const durationSeconds = Math.max(18, logos.length * 3);
+
+  return (
+    <section className="mx-auto w-full max-w-[1320px] space-y-4">
+      <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+        <div className="space-y-2">
+          <Badge tone="outline">Партнеры</Badge>
+          <h3 className="text-3xl font-semibold text-white md:text-4xl">Марки и поставщики</h3>
+        </div>
+      </div>
+      <div className="relative overflow-hidden rounded-[28px] border border-white/5 bg-black/40 px-3 py-5 shadow-strong">
+        <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(120%_140%_at_0%_50%,rgba(0,0,0,0.4),transparent_45%),radial-gradient(120%_140%_at_100%_50%,rgba(0,0,0,0.4),transparent_45%)]" />
+        <div className="pointer-events-none absolute left-0 top-0 z-0 h-full w-24 bg-gradient-to-r from-[#0d0d0d] via-[#0d0d0d]/85 to-transparent" />
+        <div className="pointer-events-none absolute right-0 top-0 z-0 h-full w-24 bg-gradient-to-l from-[#0d0d0d] via-[#0d0d0d]/85 to-transparent" />
+        <div className="relative z-10 marquee">
+          <div className="marquee-track" style={{ animationDuration: `${durationSeconds}s` }}>
+            {marqueeItems.map((logo, index) => {
+              const content = (
+                <div className="flex h-28 w-56 items-center justify-center px-5 transition hover:scale-[1.03]">
+                  <img
+                    src={logo.logoUrl}
+                    alt={logo.name}
+                    className="max-h-20 w-auto object-contain opacity-95 drop-shadow-[0_6px_18px_rgba(0,0,0,0.35)] transition hover:opacity-100"
+                    loading="lazy"
+                  />
+                </div>
+              );
+
+              const key = `${logo.id}-${index}`;
+              return logo.href ? (
+                <a
+                  key={key}
+                  href={logo.href}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-4"
+                  aria-label={logo.name}
+                >
+                  {content}
+                </a>
+              ) : (
+                <div key={key} className="px-4">
+                  {content}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function CountriesSection() {
   return (
     <section className="mx-auto w-full max-w-[1320px] space-y-6">
@@ -475,6 +545,29 @@ function ProcessSection() {
           </RevealOnScroll>
         </div>
       </div>
+    </section>
+  );
+}
+
+function TestimonialsSection({
+  testimonials,
+}: {
+  testimonials: Awaited<ReturnType<typeof getPublishedTestimonials>>;
+}) {
+  if (!testimonials.length) {
+    return null;
+  }
+
+  return (
+    <section className="mx-auto w-full max-w-[1320px] space-y-5">
+      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <div className="space-y-2">
+          <h3 className="text-3xl font-semibold text-white md:text-4xl">
+            Что о нас говорят
+          </h3>
+        </div>
+      </div>
+      <TestimonialsCarousel testimonials={testimonials} />
     </section>
   );
 }
