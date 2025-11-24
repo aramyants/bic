@@ -15,12 +15,17 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Copy Next standalone output
+# Copy Next standalone output (server.js, .next, etc.)
 COPY --from=deps /app/.next/standalone ./
+
+# Static assets
 COPY --from=deps /app/.next/static ./.next/static
 COPY --from=deps /app/public ./public
 
-# Copy migration / utility scripts so `npm run db:migrate` works
+# IMPORTANT: bring full node_modules so scripts can use dotenv, drizzle, etc.
+COPY --from=deps /app/node_modules ./node_modules
+
+# Migration / seed scripts
 COPY --from=deps /app/scripts ./scripts
 
 EXPOSE 3000
