@@ -4,6 +4,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   transpilePackages: ["lucide-react"],
+  output: 'standalone',  
   experimental: {
     serverActions: {
       bodySizeLimit: "4mb",
