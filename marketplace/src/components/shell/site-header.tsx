@@ -108,8 +108,10 @@ export const SiteHeader: React.FC = () => {
 
       <div
         className={cn(
-          "xl:hidden",
-          menuOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0",
+          "xl:hidden overflow-hidden transition-[max-height,opacity] duration-200 ease-out",
+          menuOpen
+            ? "pointer-events-auto max-h-[80vh] opacity-100"
+            : "pointer-events-none max-h-0 opacity-0",
         )}
       >
         <div className="mx-auto mt-4 w-full max-w-[320px] space-y-4 rounded-3xl border border-white/10 bg-black/85 p-6 text-sm text-white/75 shadow-strong">

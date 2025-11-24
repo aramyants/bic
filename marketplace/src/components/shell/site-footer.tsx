@@ -212,7 +212,7 @@ export const SiteFooter = () => {
       </div>
 
       <div className="border-t border-white/10">
-        <div className="mx-auto flex w-full max-w-[1320px] flex-col items-center justify-between gap-4 px-6 py-6 text-xs text-white/55 md:flex-row">
+        <div className="mx-auto flex w-full max-w-[1320px] flex-col items-center justify-between gap-4 px-6 py-6 pb-16 text-xs text-white/55 md:flex-row md:pb-6">
           <span>
             © {year} B.I.C. Best Imported Cars. Все права защищены. Создано от{" "}
             <Link href="https://aramyants.com/" target="_blank" className="text-white transition-colors hover:text-[#ec0c0c]">

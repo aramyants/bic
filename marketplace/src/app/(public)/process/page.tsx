@@ -108,14 +108,14 @@ const guarantees = [
 
 export default function ProcessPage() {
   return (
-    <div className="mx-auto w-full max-w-[1320px] space-y-16 px-6 py-16 text-white lg:space-y-20 lg:py-20">
-      <section className="relative overflow-hidden rounded-[44px] border border-white/12 bg-gradient-to-br from-black/85 via-brand-secondary/70 to-brand-primary/35 p-10 shadow-strong sm:p-12">
+    <div className="mx-auto w-full max-w-[1320px] space-y-14 px-4 py-12 text-white sm:space-y-16 sm:px-6 lg:space-y-20 lg:py-20">
+      <section className="relative overflow-hidden rounded-[44px] border border-white/12 bg-gradient-to-br from-black/85 via-brand-secondary/70 to-brand-primary/35 p-6 shadow-strong sm:p-10">
         <div className="pointer-events-none absolute -left-16 top-8 h-64 w-64 rounded-full bg-brand-primary/25 blur-3xl" />
         <div className="pointer-events-none absolute bottom-0 right-0 h-72 w-72 rounded-full bg-white/12 blur-3xl" />
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.08),transparent_38%),radial-gradient(circle_at_80%_0%,rgba(236,12,12,0.18),transparent_40%)]" />
 
-        <div className="relative grid gap-12 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
-          <div className="space-y-6">
+        <div className="relative grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-12">
+          <div className="space-y-5 sm:space-y-6">
             <Badge tone="outline">Как это работает</Badge>
             <h1 className="text-4xl font-semibold leading-tight md:text-5xl">
               Прозрачный маршрут: от брифа и проверки до выдачи «под ключ»
@@ -151,7 +151,7 @@ export default function ProcessPage() {
               </div>
             </div>
 
-            <div className="relative mt-5 space-y-5">
+            <div className="relative mt-5 space-y-4 sm:space-y-5">
               {microRoute.map((item, index) => (
                 <div key={item.title} className="flex gap-3">
                   <div className="flex flex-col items-center">
@@ -207,7 +207,7 @@ export default function ProcessPage() {
         </div>
       </section>
 
-      <section className="space-y-8">
+      <section className="space-y-7 sm:space-y-8">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div className="space-y-2">
             <Badge tone="outline">4 шага</Badge>
@@ -225,10 +225,10 @@ export default function ProcessPage() {
           </Link>
         </div>
 
-        <div className="grid gap-5 lg:grid-cols-2">
+        <div className="grid gap-4 sm:gap-5 lg:grid-cols-2">
           {steps.map((step, index) => (
             <RevealOnScroll key={step.title} delay={index * 80}>
-              <div className="group relative overflow-hidden rounded-[30px] border border-white/12 bg-white/6 p-6 shadow-soft backdrop-blur transition duration-500 hover:-translate-y-1.5 hover:border-brand-primary/60">
+              <div className="group relative overflow-hidden rounded-[30px] border border-white/12 bg-white/6 p-5 shadow-soft backdrop-blur transition duration-500 hover:-translate-y-1.5 hover:border-brand-primary/60 sm:p-6">
                 <div className="pointer-events-none absolute inset-0 opacity-0 transition duration-500 group-hover:opacity-100">
                   <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/18 via-brand-primary/6 to-transparent" />
                 </div>
@@ -260,7 +260,7 @@ export default function ProcessPage() {
         </div>
       </section>
 
-      <section className="rounded-[40px] border border-white/12 bg-white/5 px-8 py-10 shadow-soft backdrop-blur lg:px-10">
+      <section className="rounded-[40px] border border-white/12 bg-white/5 px-6 py-9 shadow-soft backdrop-blur sm:px-8 sm:py-10 lg:px-10">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
             <Badge tone="outline">Контроль и сервис</Badge>
@@ -278,7 +278,7 @@ export default function ProcessPage() {
           {guarantees.map((item) => (
             <div
               key={item.title}
-              className="group relative overflow-hidden rounded-[28px] border border-white/12 bg-black/55 p-5 transition duration-500 hover:-translate-y-1 hover:border-brand-primary/50"
+              className="group relative overflow-hidden rounded-[28px] border border-white/12 bg-black/55 p-4 transition duration-500 hover:-translate-y-1 hover:border-brand-primary/50 sm:p-5"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/12 via-transparent to-white/6 opacity-0 transition duration-500 group-hover:opacity-100" />
               <div className="relative flex items-center gap-3">
@@ -293,7 +293,7 @@ export default function ProcessPage() {
         </div>
       </section>
 
-      <section className="relative overflow-hidden rounded-[42px] border border-brand-primary/35 bg-gradient-to-r from-brand-primary/80 via-brand-primary/55 to-brand-secondary px-8 py-10 shadow-strong lg:px-10">
+      <section className="relative overflow-hidden rounded-[42px] border border-brand-primary/35 bg-gradient-to-r from-brand-primary/80 via-brand-primary/55 to-brand-secondary px-6 py-8 shadow-strong sm:px-8 sm:py-10 lg:px-10">
         <div className="pointer-events-none absolute -left-10 top-0 h-40 w-40 rounded-full bg-white/20 blur-3xl" />
         <div className="pointer-events-none absolute right-0 bottom-0 h-48 w-48 rounded-full bg-black/30 blur-3xl" />
         <div className="relative flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

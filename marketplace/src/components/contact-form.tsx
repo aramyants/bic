@@ -201,7 +201,7 @@ export function ContactForm() {
       onSubmit={form.handleSubmit(onSubmit)}
       noValidate
       id="request"
-      className="flex flex-col gap-4 rounded-[36px] border border-white/12 bg-black/45 p-8 backdrop-blur"
+      className="flex flex-col gap-4 rounded-[36px] border border-white/12 bg-black/45 p-5 backdrop-blur sm:p-8"
     >
       <div className="space-y-1.5">
         <Input

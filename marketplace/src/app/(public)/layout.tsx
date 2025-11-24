@@ -14,7 +14,7 @@ export default function PublicLayout({ children }: { children: ReactNode }) {
       </div>
       <div className="relative z-10 flex min-h-screen flex-col">
         <SiteHeader />
-        <main className="flex-1 pb-24">{children}</main>
+        <main className="flex-1 pb-24 px-4 sm:px-6">{children}</main>
         <SiteFooter />
       </div>
       <ScrollToTop />

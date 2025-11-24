@@ -27,6 +27,7 @@ export const VehicleGallery: React.FC<VehicleGalleryProps> = ({ images, title })
 
   const showPrev = () => setActiveIndex((prev) => clampIndex(prev - 1));
   const showNext = () => setActiveIndex((prev) => clampIndex(prev + 1));
+  const touchStartX = React.useRef<number | null>(null);
 
   React.useEffect(() => {
     setActiveIndex((prev) => clampIndex(prev));
@@ -56,6 +57,24 @@ export const VehicleGallery: React.FC<VehicleGalleryProps> = ({ images, title })
             showNext();
           }
         }}
+        onTouchStart={(event) => {
+          touchStartX.current = event.touches[0]?.clientX ?? null;
+        }}
+        onTouchMove={(event) => {
+          if (touchStartX.current == null) return;
+          const deltaX = event.touches[0]?.clientX - touchStartX.current;
+          if (deltaX && Math.abs(deltaX) > 28) {
+            if (deltaX > 0) {
+              showPrev();
+            } else {
+              showNext();
+            }
+            touchStartX.current = null;
+          }
+        }}
+        onTouchEnd={() => {
+          touchStartX.current = null;
+        }}
         aria-label="Просмотр галереи автомобиля"
       >
         <div className="relative aspect-[16/10] w-full">
@@ -79,7 +98,7 @@ export const VehicleGallery: React.FC<VehicleGalleryProps> = ({ images, title })
             <button
               type="button"
               onClick={showPrev}
-              className="absolute left-4 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/60 text-white opacity-0 transition hover:bg-black/80 focus-visible:opacity-100 group-hover:opacity-100"
+              className="absolute left-4 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/60 text-white opacity-100 transition hover:bg-black/80 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
               aria-label="Предыдущее фото"
             >
               <ChevronLeft className="h-6 w-6" />
@@ -87,7 +106,7 @@ export const VehicleGallery: React.FC<VehicleGalleryProps> = ({ images, title })
             <button
               type="button"
               onClick={showNext}
-              className="absolute right-4 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/60 text-white opacity-0 transition hover:bg-black/80 focus-visible:opacity-100 group-hover:opacity-100"
+              className="absolute right-4 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/60 text-white opacity-100 transition hover:bg-black/80 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
               aria-label="Следующее фото"
             >
               <ChevronRight className="h-6 w-6" />

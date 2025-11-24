@@ -85,8 +85,8 @@ export default async function VehiclePage({
   const bodyTypeLabel = vehicle.bodyType ? getBodyTypeLabel(vehicle.bodyType) : vehicle.bodyType ?? "-";
 
   return (
-    <div className="mx-auto w-full max-w-[1320px] space-y-16 py-12 text-white">
-      <div className="flex items-center mb-4">
+    <div className="mx-auto w-full max-w-[1320px] space-y-12 py-10 text-white sm:space-y-16 sm:py-12">
+      <div className="mb-3 flex items-center sm:mb-4">
         <Link
           href="/catalog"
           className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm text-white/70 transition hover:border-white/30 hover:text-white"
@@ -96,11 +96,11 @@ export default async function VehiclePage({
         </Link>
       </div>
 
-      <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+      <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12">
         <div className="space-y-6">
           <VehicleGallery images={vehicle.gallery} title={vehicle.title} />
 
-          <div className="rounded-[32px] border border-white/10 bg-black/30 p-6 shadow-lg shadow-black/20">
+          <div className="rounded-[32px] border border-white/10 bg-black/30 p-5 shadow-lg shadow-black/20 sm:p-6">
             <div className="flex items-center justify-between gap-3">
               <h3 className="text-lg font-semibold text-white">Ключевые факты</h3>
               <span className="text-xs uppercase tracking-[0.1em] text-white/45">Быстрый обзор</span>
@@ -118,7 +118,7 @@ export default async function VehiclePage({
             </div>
           </div>
 
-          <div className="rounded-[32px] border border-white/10 bg-black/30 p-6 shadow-lg shadow-black/20">
+          <div className="rounded-[32px] border border-white/10 bg-black/30 p-5 shadow-lg shadow-black/20 sm:p-6">
             <div className="flex items-center justify-between gap-3">
               <h3 className="text-lg font-semibold text-white">Рынки и документы</h3>
               <span className="text-xs text-white/50">
@@ -173,7 +173,7 @@ export default async function VehiclePage({
           </div>
         </div>
 
-        <div className="space-y-6 rounded-[42px] border border-white/10 bg-white/6 p-8">
+        <div className="space-y-6 rounded-[42px] border border-white/10 bg-white/6 p-5 sm:p-6 md:p-8">
           <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.1em] text-white/60">
             <Badge tone="outline">{vehicle.brand}</Badge>
             <Badge tone="default">{bodyTypeLabel}</Badge>
@@ -219,7 +219,7 @@ export default async function VehiclePage({
         </div>
       </div>
 
-      <section className="space-y-4">
+      <section className="space-y-4 sm:space-y-5">
         <h2 className="text-2xl font-semibold">{copy.specsTitle}</h2>
         <div className="grid gap-3 md:grid-cols-3">
           {vehicle.features.map((feature) => (
@@ -230,11 +230,11 @@ export default async function VehiclePage({
         </div>
       </section>
 
-      <section className="space-y-6">
+      <section className="space-y-5 sm:space-y-6">
         <h2 className="text-2xl font-semibold">{copy.specsGroupedTitle}</h2>
         <div className="grid gap-6 md:grid-cols-2">
           {Object.entries(specsGrouped).map(([group, specs]) => (
-            <div key={group} className="space-y-3 rounded-[32px] border border-white/10 bg-white/5 p-6">
+            <div key={group} className="space-y-3 rounded-[32px] border border-white/10 bg-white/5 p-5 sm:p-6">
               <h3 className="text-sm font-semibold uppercase tracking-[0.1em] text-white/50">{group}</h3>
               <dl className="space-y-2 text-sm text-white/70">
                 {specs.map((spec) => (
@@ -252,13 +252,13 @@ export default async function VehiclePage({
         </div>
       </section>
 
-      <section className="space-y-6">
+      <section className="space-y-5 sm:space-y-6">
         <h2 className="text-2xl font-semibold">{copy.logisticsTitle}</h2>
         <div className="space-y-4">
           {vehicle.logistics.map((step, index) => (
             <div
               key={step.id}
-              className="flex items-center gap-4 rounded-[32px] border border-white/10 bg-white/5 px-6 py-4 text-sm text-white/70"
+              className="flex items-center gap-4 rounded-[32px] border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/70 sm:px-6 sm:py-4"
             >
               <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-black/30 text-xs font-semibold uppercase tracking-[0.1em] text-white/60">
                 {index + 1}

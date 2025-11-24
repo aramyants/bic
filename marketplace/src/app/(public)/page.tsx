@@ -321,7 +321,7 @@ function CalculatorSection({
 }) {
   return (
     <section id="calculator" className="mx-auto w-full max-w-[1320px]">
-      <div className="flex w-full gap-10 rounded-[42px] border border-white/10 bg-white/8 px-10 py-14 text-white lg:flex-col lg:justify-between">
+      <div className="flex flex-col w-full gap-10 rounded-[42px] border border-white/10 bg-white/8 px-5 py-10 text-white sm:px-8 sm:py-12 lg:flex-col lg:justify-between lg:px-10 lg:py-14">
         <div className="space-y-4">
           <Badge tone="outline">Онлайн-калькулятор</Badge>
           <h2 className="text-3xl font-semibold text-white md:text-4xl">
@@ -576,7 +576,7 @@ function TestimonialsSection({
 function ContactCta() {
   return (
     <section id="contacts" className="mx-auto w-full max-w-[1320px]">
-      <div className="grid gap-10 rounded-[42px] border border-white/10 bg-gradient-to-br from-brand-secondary/80 to-black/80 px-10 py-14 text-white lg:grid-cols-[1.1fr_0.9fr]">
+      <div className="grid gap-10 rounded-[42px] border border-white/10 bg-gradient-to-br from-brand-secondary/80 to-black/80 px-5 py-10 text-white sm:px-8 sm:py-12 lg:grid-cols-[1.1fr_0.9fr] lg:px-10 lg:py-14">
         <div className="space-y-6">
           <Badge tone="default">Свяжитесь с нами</Badge>
           <h2 className="text-3xl font-semibold text-white md:text-4xl">

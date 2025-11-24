@@ -84,11 +84,11 @@ const customs = [
 
 export default function DeliveryPage() {
   return (
-    <div className="mx-auto w-full max-w-[1320px] space-y-14 px-6 py-16 text-white lg:space-y-16 lg:py-20">
-      <section className="relative overflow-hidden rounded-[44px] border border-white/12 bg-gradient-to-br from-black/85 via-brand-secondary/70 to-brand-primary/35 p-10 shadow-strong sm:p-12">
+    <div className="mx-auto w-full max-w-[1320px] space-y-12 px-4 py-12 text-white sm:space-y-14 sm:px-6 lg:space-y-16 lg:py-20">
+      <section className="relative overflow-hidden rounded-[44px] border border-white/12 bg-gradient-to-br from-black/85 via-brand-secondary/70 to-brand-primary/35 p-6 shadow-strong sm:p-10">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_25%_20%,rgba(255,255,255,0.09),transparent_40%),radial-gradient(circle_at_80%_0%,rgba(236,12,12,0.18),transparent_45%)]" />
-        <div className="relative grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center">
-          <div className="space-y-6">
+        <div className="relative grid gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-10">
+          <div className="space-y-5 sm:space-y-6">
             <Badge tone="outline">Доставка и растаможка</Badge>
             <h1 className="text-4xl font-semibold leading-tight md:text-5xl">
               Логистика, таможня и выдача «под ключ»
@@ -114,7 +114,7 @@ export default function DeliveryPage() {
             </div>
           </div>
 
-          <div className="relative space-y-4 rounded-[36px] border border-white/12 bg-white/6 p-6 shadow-soft backdrop-blur">
+          <div className="relative space-y-4 rounded-[36px] border border-white/12 bg-white/6 p-5 shadow-soft backdrop-blur sm:p-6">
             <div className="flex items-center justify-between gap-3 text-sm text-white/70">
               <span>Маршруты</span>
               <span className="rounded-full bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.1em] text-white/60">
@@ -125,7 +125,7 @@ export default function DeliveryPage() {
               {corridors.map((lane, index) => {
                 const Icon = lane.icon;
                 return (
-                  <div key={lane.title} className="flex gap-3 rounded-[26px] border border-white/10 bg-black/40 px-4 py-4">
+                  <div key={lane.title} className="flex gap-3 rounded-[26px] border border-white/10 bg-black/40 px-4 py-3 sm:py-4">
                     <div className="flex flex-col items-center gap-1">
                       <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 text-brand-primary ring-1 ring-white/10">
                         <Icon className="h-5 w-5" />
@@ -151,13 +151,13 @@ export default function DeliveryPage() {
         </div>
       </section>
 
-      <section className="grid gap-8 lg:grid-cols-2">
+      <section className="grid gap-6 sm:gap-8 lg:grid-cols-2">
         {customs.map((block) => {
           const Icon = block.icon;
           return (
             <div
               key={block.title}
-              className="group relative overflow-hidden rounded-[32px] border border-white/12 bg-white/6 p-6 shadow-soft backdrop-blur transition duration-300 hover:-translate-y-1 hover:border-brand-primary/50"
+              className="group relative overflow-hidden rounded-[32px] border border-white/12 bg-white/6 p-5 shadow-soft backdrop-blur transition duration-300 hover:-translate-y-1 hover:border-brand-primary/50 sm:p-6"
             >
               <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/12 via-transparent to-white/8 opacity-0 transition duration-300 group-hover:opacity-100" />
               <div className="relative mb-3 flex items-center gap-3">
@@ -179,7 +179,7 @@ export default function DeliveryPage() {
         })}
       </section>
 
-      <section className="rounded-[38px] border border-brand-primary/35 bg-gradient-to-r from-brand-primary/80 via-brand-primary/55 to-brand-secondary px-8 py-10 shadow-strong lg:px-10">
+      <section className="rounded-[38px] border border-brand-primary/35 bg-gradient-to-r from-brand-primary/80 via-brand-primary/55 to-brand-secondary px-6 py-8 shadow-strong sm:px-8 sm:py-10 lg:px-10">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="space-y-2">
             <h3 className="text-3xl font-semibold text-white md:text-4xl">Нужно подтвердить сроки и стоимость?</h3>
