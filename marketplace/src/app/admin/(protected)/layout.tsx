@@ -18,10 +18,10 @@ import { signOutAction } from '@/server/auth-actions';
 const navItems = [
   { href: '/admin', label: 'Главная', icon: LayoutDashboard },
   { href: '/admin/vehicles', label: 'Автомобили', icon: Car },
+  { href: '/admin/hierarchy', label: 'Иерархия брендов', icon: Layers },
   { href: '/admin/calculator', label: 'Калькулятор', icon: Calculator },
   { href: '/admin/testimonials', label: 'Отзывы', icon: MessageSquare },
   { href: '/admin/sources', label: 'Источники', icon: Database },
-  { href: '/admin/hierarchy', label: 'Иерархия брендов', icon: Layers },
   { href: '/admin/settings', label: 'Настройки', icon: Settings },
 ];
 

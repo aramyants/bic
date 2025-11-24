@@ -4,9 +4,9 @@ export default async function AdminDashboard() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-semibold text-white">Обзор</h1>
-          <p className="text-sm text-white/60">
-            Добро пожаловать в панель администратора B.I.C. Управляйте каталогом, калькулятором и отзывами через разделы слева.
-          </p>
+            <p className="text-sm text-white/60">
+            Добро пожаловать в панель администратора B.I.C. Управляйте каталогом, калькулятором и отзывами через меню слева или выберите нужный раздел ниже.
+            </p>
         </div>
       </div>
 

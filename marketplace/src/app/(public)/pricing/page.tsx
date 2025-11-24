@@ -143,7 +143,9 @@ export default async function PricingPage() {
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div className="space-y-1">
             <Badge tone="outline">Актуальные ставки</Badge>
-            <h2 className="text-3xl font-semibold text-white md:text-4xl">Прозрачные условия без скрытых платежей</h2>
+            <h2 className="text-3xl font-semibold text-white md:text-4xl">Прозрачные условия
+            <br />
+            без скрытых платежей</h2>
           </div>
           <p className="max-w-xl text-sm text-white/70">
             Комиссия, логистика, брокер, пошлины и НДС — действующие ставки, которыми мы фиксируем договор. Цифры обновляются, когда меняется рынок и курс.

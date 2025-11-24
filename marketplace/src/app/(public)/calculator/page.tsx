@@ -25,8 +25,7 @@ export default async function CalculatorPage() {
         <Badge tone="outline">Калькулятор расходов</Badge>
         <h1 className="text-4xl font-semibold">Расчёт доставки и оформления авто</h1>
         <p className="text-sm text-white/70">
-          Введите параметры автомобиля и получите ориентировочную стоимость с учётом пошлин, НДС и логистики. Мы
-          работаем как с частными лицами, так и с компаниями.
+          Введите параметры автомобиля и получите ориентировочную стоимость с учётом пошлин, НДС и логистики.
         </p>
         <p className="text-xs text-white/55">Текущий курс EUR/RUB: {eurRubRate.toFixed(2)}</p>
       </div>
