@@ -18,9 +18,15 @@ export function CalculatorConfigForm({
 }: CalculatorConfigFormProps) {
   return (
     <form action={action} className="space-y-6">
+      <input
+        type="hidden"
+        name="mode"
+        value={initialData?.mode ?? 'standard'}
+      />
+
       <div className="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
         <h3 className="mb-4 text-lg font-semibold text-white">
-          Основное
+          Основные настройки
         </h3>
 
         <div className="grid gap-6 md:grid-cols-2">
@@ -31,21 +37,31 @@ export function CalculatorConfigForm({
               name="name"
               required
               defaultValue={initialData?.name}
-              placeholder="Стандартная"
+              placeholder="Например, “Базовая ставка”"
             />
           </div>
 
-          <div className="flex items-center gap-3">
-            <input
-              type="checkbox"
-              id="isActive"
-              name="isActive"
-              defaultChecked={initialData?.isActive ?? false}
-              className="h-5 w-5 rounded border-white/20 bg-white/10 text-orange-500 focus:ring-2 focus:ring-orange-500/20"
-            />
-            <Label htmlFor="isActive" className="cursor-pointer">
-              Сделать активной
-            </Label>
+          <div className="flex flex-col gap-3 text-sm text-white/80">
+            <label className="inline-flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="isActive"
+                name="isActive"
+                defaultChecked={initialData?.isActive ?? false}
+                className="h-5 w-5 rounded border-white/20 bg-white/10 text-orange-500 focus:ring-2 focus:ring-orange-500/20"
+              />
+              <span>Сделать активной</span>
+            </label>
+            <label className="inline-flex items-center gap-3">
+              <input
+                type="checkbox"
+                id="applyToVehicles"
+                name="applyToVehicles"
+                defaultChecked={initialData?.applyToVehicles ?? true}
+                className="h-5 w-5 rounded border-white/20 bg-white/10 text-orange-500 focus:ring-2 focus:ring-orange-500/20"
+              />
+              <span>Применять к карточкам авто</span>
+            </label>
           </div>
         </div>
 
@@ -57,7 +73,7 @@ export function CalculatorConfigForm({
             defaultValue={initialData?.description ?? ''}
             rows={3}
             className="w-full rounded-lg border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder:text-white/40 focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-500/20"
-            placeholder="Необязательно"
+            placeholder="Короткий комментарий к формуле"
           />
         </div>
       </div>
@@ -81,7 +97,9 @@ export function CalculatorConfigForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="logisticsCostPerKm">Логистика за км (₽)</Label>
+            <Label htmlFor="logisticsCostPerKm">
+              Логистика за км (₽)
+            </Label>
             <Input
               id="logisticsCostPerKm"
               name="logisticsCostPerKm"
@@ -96,7 +114,7 @@ export function CalculatorConfigForm({
 
       <div className="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
         <h3 className="mb-4 text-lg font-semibold text-white">
-          Налоги и сборы
+          Пошлины и налоги
         </h3>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -132,6 +150,38 @@ export function CalculatorConfigForm({
             label="Комиссия B.I.C. (%) *"
             defaultValue={initialData?.commissionPercent ?? '5'}
             step="0.1"
+          />
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+        <h3 className="mb-4 text-lg font-semibold text-white">
+          Дополнительные сборы
+        </h3>
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          <NumberField
+            id="insurancePercent"
+            label="Страхование / логистика (%)"
+            defaultValue={initialData?.insurancePercent ?? '1.2'}
+            step="0.1"
+          />
+          <NumberField
+            id="serviceFeeIndividualPercent"
+            label="Комиссия B.I.C. (физ.) (%)"
+            defaultValue={initialData?.serviceFeeIndividualPercent ?? '0.9'}
+            step="0.1"
+          />
+          <NumberField
+            id="serviceFeeCompanyPercent"
+            label="Комиссия B.I.C. (юр.) (%)"
+            defaultValue={initialData?.serviceFeeCompanyPercent ?? '1.2'}
+            step="0.1"
+          />
+          <NumberField
+            id="documentPackageCost"
+            label="Документы и пакет (₽)"
+            defaultValue={initialData?.documentPackageCost ?? 45000}
           />
         </div>
       </div>

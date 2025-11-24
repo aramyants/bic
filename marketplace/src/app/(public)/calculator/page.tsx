@@ -2,16 +2,22 @@ import type { Metadata } from "next";
 
 import { LandedCostCalculator } from "@/components/calculator/landed-cost-calculator";
 import { Badge } from "@/components/ui/badge";
+import { toCalculatorSettings } from "@/lib/calculator";
+import { getActiveCalculatorConfig } from "@/server/calculator-service";
 import { getEurRubRate } from "@/server/exchange-service";
 
 export const metadata: Metadata = {
-  title: "Калькулятор растаможки | B.I.C.",
+  title: "Калькулятор растаможки и логистики | B.I.C.",
   description:
-    "Онлайн-калькулятор доставки и растаможки автомобилей. Узнайте примерную стоимость ввоза авто вместе с B.I.C.",
+    "Онлайн-калькулятор доставки и растаможки автомобилей. Получите ориентировочную стоимость ввоза авто вместе с B.I.C.",
 };
 
 export default async function CalculatorPage() {
-  const eurRubRate = await getEurRubRate().catch(() => 100);
+  const [eurRubRate, calculatorConfig] = await Promise.all([
+    getEurRubRate().catch(() => 100),
+    getActiveCalculatorConfig().catch(() => null),
+  ]);
+  const calculatorSettings = toCalculatorSettings(calculatorConfig);
 
   return (
     <div className="mx-auto w-full max-w-[1100px] space-y-8 px-6 py-16 text-white">
@@ -24,11 +30,11 @@ export default async function CalculatorPage() {
         </p>
         <p className="text-xs text-white/55">Текущий курс EUR/RUB: {eurRubRate.toFixed(2)}</p>
       </div>
-      <LandedCostCalculator baseRate={eurRubRate} />
+      <LandedCostCalculator baseRate={eurRubRate} settings={calculatorSettings} />
       <div className="rounded-[32px] border border-white/10 bg-white/6 px-6 py-5 text-sm text-white/70">
         <p>
-          Результат носит ориентировочный характер. Точная сумма зависит от конкретной комплектации, ставок таможенных
-          пошлин и выбранного маршрута доставки. Команда B.I.C. проконсультирует и предоставит индивидуальный расчёт.
+          Результат носит ориентировочный характер. Точная сумма зависит от комплектации, ставок таможенных пошлин и
+          выбранной логистики. Команда B.I.C. проконсультирует и подготовит индивидуальный расчёт.
         </p>
       </div>
     </div>

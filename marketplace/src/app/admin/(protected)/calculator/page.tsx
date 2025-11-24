@@ -13,7 +13,7 @@ export default async function CalculatorPage() {
         <div>
           <h1 className="text-3xl font-bold text-white">Конфигуратор калькулятора</h1>
           <p className="mt-1 text-sm text-white/60">
-            Настройте пошлины, НДС, логистику и комиссию — расчёты сайта будут соответствовать вашим условиям.
+            Настройте пошлины, НДС, логистику и комиссии — расчёты на сайте будут соответствовать вашим условиям.
           </p>
         </div>
         <Link
@@ -36,7 +36,7 @@ export default async function CalculatorPage() {
               <div className="absolute right-4 top-4">
                 <Badge tone="success" className="flex items-center gap-1">
                   <Check className="h-3 w-3" />
-                  Активно
+                  Активна
                 </Badge>
               </div>
             )}
@@ -52,32 +52,38 @@ export default async function CalculatorPage() {
             <div className="mt-4 grid grid-cols-2 gap-4 text-xs">
               <div>
                 <div className="text-white/40">Пошлина</div>
-                <div className="font-medium text-white">
-                  {config.dutyPercent}%
-                </div>
+                <div className="font-medium text-white">{config.dutyPercent}%</div>
               </div>
               <div>
                 <div className="text-white/40">НДС</div>
-                <div className="font-medium text-white">
-                  {config.vatPercent}%
-                </div>
+                <div className="font-medium text-white">{config.vatPercent}%</div>
               </div>
               <div>
                 <div className="text-white/40">Комиссия B.I.C.</div>
-                <div className="font-medium text-white">
-                  {config.commissionPercent}%
-                </div>
+                <div className="font-medium text-white">{config.commissionPercent}%</div>
               </div>
               <div>
                 <div className="text-white/40">Логистика (база)</div>
                 <div className="font-medium text-white">
-                  {(config.logisticsBaseCost / 1000).toFixed(0)}k RUB
+                  {(config.logisticsBaseCost / 1000).toFixed(0)}k ₽
                 </div>
               </div>
             </div>
 
-            <div className="mt-4 text-xs text-white/40">
-              Обновлено: {new Date(config.updatedAt).toLocaleDateString('ru-RU')}
+            <div className="mt-4 flex items-center gap-2 text-xs text-white/40">
+              <span>
+                Обновлено:{' '}
+                {new Date(config.updatedAt).toLocaleDateString('ru-RU')}
+              </span>
+              {config.applyToVehicles ? (
+                <Badge tone="outline" className="border-white/20 text-white/70">
+                  Для карточек авто
+                </Badge>
+              ) : (
+                <Badge tone="outline" className="border-white/20 text-white/70">
+                  Только калькулятор
+                </Badge>
+              )}
             </div>
           </Link>
         ))}
@@ -85,7 +91,9 @@ export default async function CalculatorPage() {
 
       {configs.length === 0 && (
         <div className="rounded-xl border border-white/10 bg-white/5 p-12 text-center backdrop-blur-sm">
-          <p className="text-white/60">Конфигураций пока нет.</p>
+          <p className="text-white/60">
+            Конфигураций пока нет.
+          </p>
           <Link
             href="/admin/calculator/new"
             className="mt-4 inline-block text-sm text-orange-400 hover:text-orange-300"

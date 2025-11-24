@@ -24,7 +24,7 @@ const SOCIAL_LINKS = [
 
 const PARTNER_LINKS = [
   {
-    href: "https://www.avito.ru/user/7d1cfdf3628a844427b6f04158a825b4/profile/all/transport",
+    href: "https://www.avito.ru/brands/i129065073/all/transport?sellerId=f767951810a227ac5add1c4f0d1b9d9e",
     label: "Профиль на Avito",
     icon: Store,
     color: "bg-[#ff163c]/20 text-[#ff163c]",
@@ -64,7 +64,7 @@ const CONTACT_ITEMS = [
   {
     icon: Send,
     label: "Быстрая связь",
-    value: "@BIC_auto_bot",
+    value: "Telegram",
     href: "https://t.me/BIC_auto_bot",
   },
 ]
@@ -86,7 +86,7 @@ export const SiteFooter = () => {
           />
           <p className="text-sm text-white/70">
             B.I.C. «Best Imported Cars» — платформа полного цикла по подбору, импорту и продаже автомобилей и мототехники.
-            Работаем с проверенными поставщиками из 25 стран, фиксируем курс ЦБ РФ и сопровождаем клиента на каждом этапе.
+            Работаем с проверенными поставщиками и сопровождаем клиента на каждом этапе.
           </p>
         </div>
 
@@ -186,7 +186,7 @@ export const SiteFooter = () => {
               ))}
             </div>
             <p className="text-xs text-white/55">
-              Telegram-канал @bicauto — свежие подборки, новости рынка и закрытые предложения.
+              Подписывайтесь на каналы для получения свежих подборок, новостей рынка и закрытых предложений.
             </p>
           </div>
           <div className="space-y-3">

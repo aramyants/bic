@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 import { FavoritesView } from "@/components/favorites-view";
 import type { VehicleCardModel } from "@/lib/vehicle-card-model";
@@ -23,7 +24,7 @@ export default async function FavoritesPage() {
             href="/catalog"
             className="inline-flex items-center gap-2 rounded-full border border-white/15 px-4 py-2 text-sm text-white/70 transition hover:border-white/30 hover:text-white"
           >
-            <span aria-hidden="true">←</span>
+            <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             Назад в каталог
           </Link>
         </div>

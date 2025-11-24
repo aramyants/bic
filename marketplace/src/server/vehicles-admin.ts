@@ -18,9 +18,7 @@ import {
 import { slugify } from "@/lib/utils";
 import { requireAdmin } from "@/server/auth";
 
-const emptyToUndefined = <T, Def extends z.ZodTypeDef, Input>(
-  schema: z.ZodType<T, Def, Input>,
-) =>
+const emptyToUndefined = <T extends z.ZodTypeAny>(schema: T) =>
   z.preprocess((value) => {
     if (typeof value === "string") {
       const trimmed = value.trim();
@@ -139,104 +137,85 @@ export async function createVehicleAction(
     const slug = await ensureUniqueSlug(slugBase);
     const priceCents = Math.round(parsed.priceEur * 100);
 
-    db.transaction((tx) => {
-      tx
-        .insert(vehicles)
-        .values({
-          id: vehicleId,
-          slug,
-          title: parsed.title,
-          brand: parsed.brand,
-          model: parsed.model,
-          bodyType: parsed.bodyType ?? null,
-          year: parsed.year,
-          mileage: parsed.mileage ?? null,
-          mileageUnit: (parsed.mileageUnit || "km") as "km" | "mi",
-          basePriceEurCents: priceCents,
-          country: parsed.country,
-          city: parsed.city ?? null,
-          fuelType: parsed.fuelType ?? null,
-          transmission: parsed.transmission ?? null,
-          driveType: parsed.driveType ?? null,
-          engineVolumeCc: parsed.engineVolumeCc ?? null,
-          powerHp: parsed.powerHp ?? null,
-          shortDescription: parsed.shortDescription ?? null,
-          originalListingUrl: parsed.originalListingUrl ?? null,
-          thumbnailUrl: parsed.thumbnailUrl ?? null,
-        })
-        .run();
+    const vehicleInsert: typeof vehicles.$inferInsert = {
+      id: vehicleId,
+      slug,
+      title: parsed.title,
+      brand: parsed.brand,
+      model: parsed.model,
+      bodyType: parsed.bodyType ?? null,
+      year: parsed.year,
+      mileage: parsed.mileage ?? null,
+      mileageUnit: (parsed.mileageUnit || "km") as "km" | "mi",
+      basePriceEurCents: priceCents,
+      country: parsed.country,
+      city: parsed.city ?? null,
+      fuelType: parsed.fuelType ?? null,
+      transmission: parsed.transmission ?? null,
+      driveType: parsed.driveType ?? null,
+      engineVolumeCc: parsed.engineVolumeCc ?? null,
+      powerHp: parsed.powerHp ?? null,
+      shortDescription: parsed.shortDescription ?? null,
+      originalListingUrl: parsed.originalListingUrl ?? null,
+      thumbnailUrl: parsed.thumbnailUrl ?? null,
+    };
+
+    await db.transaction(async (tx) => {
+      await tx.insert(vehicles).values(vehicleInsert);
 
       const images = parseList(parsed.gallery);
       for (const [index, url] of images.entries()) {
-        tx
-          .insert(vehicleImages)
-          .values({
-            vehicleId,
-            url,
-            isPrimary: index === 0 ? 1 : 0,
-            sortOrder: index,
-          })
-          .run();
+        await tx.insert(vehicleImages).values({
+          vehicleId,
+          url,
+          isPrimary: index === 0,
+          sortOrder: index,
+        });
       }
 
       const features = parseList(parsed.features);
       for (const [index, label] of features.entries()) {
-        tx
-          .insert(vehicleFeatures)
-          .values({
-            vehicleId,
-            label,
-            sortOrder: index,
-          })
-          .run();
+        await tx.insert(vehicleFeatures).values({
+          vehicleId,
+          label,
+          sortOrder: index,
+        });
       }
 
       const specs = parseKeyValueList(parsed.specs);
       for (const [index, spec] of specs.entries()) {
-        tx
-          .insert(vehicleSpecifications)
-          .values({
-            vehicleId,
-            group: "general",
-            label: spec.label,
-            value: spec.value,
-            sortOrder: index,
-          })
-          .run();
+        await tx.insert(vehicleSpecifications).values({
+          vehicleId,
+          group: "general",
+          label: spec.label,
+          value: spec.value,
+          sortOrder: index,
+        });
       }
 
       const markets = parseMarkets(parsed.markets);
       for (const country of markets) {
-        tx
-          .insert(vehicleMarkets)
-          .values({ vehicleId, countryCode: country })
-          .run();
+        await tx.insert(vehicleMarkets).values({ vehicleId, countryCode: country });
       }
 
       const steps = parseLogistics(parsed.logistics);
       for (const [index, step] of steps.entries()) {
-        tx
-          .insert(logisticsMilestones)
-          .values({
-            vehicleId,
-            label: step.label,
-            description: step.description || null,
-            etaDays: step.etaDays ?? undefined,
-            sortOrder: index,
-          })
-          .run();
+        await tx.insert(logisticsMilestones).values({
+          vehicleId,
+          label: step.label,
+          description: step.description || null,
+          etaDays: step.etaDays ?? undefined,
+          sortOrder: index,
+        });
       }
 
       const documents = parseDocuments(parsed.documents);
       for (const doc of documents) {
-        tx
-          .insert(complianceDocuments)
-          .values({
-            vehicleId,
-            title: doc.title,
-            url: doc.url,
-          })
-          .run();
+        await tx.insert(complianceDocuments).values({
+          vehicleId,
+          title: doc.title,
+          url: doc.url,
+        });
       }
     });
   } catch (error) {
@@ -291,8 +270,8 @@ export async function updateVehicleAction(
   try {
     const priceCents = Math.round(parsed.priceEur * 100);
 
-    db.transaction((tx) => {
-      tx
+    await db.transaction(async (tx) => {
+      await tx
         .update(vehicles)
         .set({
           title: parsed.title,
@@ -314,83 +293,64 @@ export async function updateVehicleAction(
           originalListingUrl: parsed.originalListingUrl ?? null,
           thumbnailUrl: parsed.thumbnailUrl ?? null,
         })
-        .where(eq(vehicles.id, id))
-        .run();
+        .where(eq(vehicles.id, id));
 
-      tx.delete(vehicleImages).where(eq(vehicleImages.vehicleId, id)).run();
-      tx.delete(vehicleFeatures).where(eq(vehicleFeatures.vehicleId, id)).run();
-      tx.delete(vehicleSpecifications).where(eq(vehicleSpecifications.vehicleId, id)).run();
-      tx.delete(vehicleMarkets).where(eq(vehicleMarkets.vehicleId, id)).run();
-      tx.delete(logisticsMilestones).where(eq(logisticsMilestones.vehicleId, id)).run();
-      tx.delete(complianceDocuments).where(eq(complianceDocuments.vehicleId, id)).run();
+      await tx.delete(vehicleImages).where(eq(vehicleImages.vehicleId, id));
+      await tx.delete(vehicleFeatures).where(eq(vehicleFeatures.vehicleId, id));
+      await tx.delete(vehicleSpecifications).where(eq(vehicleSpecifications.vehicleId, id));
+      await tx.delete(vehicleMarkets).where(eq(vehicleMarkets.vehicleId, id));
+      await tx.delete(logisticsMilestones).where(eq(logisticsMilestones.vehicleId, id));
+      await tx.delete(complianceDocuments).where(eq(complianceDocuments.vehicleId, id));
 
       const images = parseList(parsed.gallery);
       for (const [index, url] of images.entries()) {
-        tx
-          .insert(vehicleImages)
-          .values({
-            vehicleId: id,
-            url,
-            isPrimary: index === 0 ? 1 : 0,
-            sortOrder: index,
-          })
-          .run();
+        await tx.insert(vehicleImages).values({
+          vehicleId: id,
+          url,
+          isPrimary: index === 0,
+          sortOrder: index,
+        });
       }
 
       const features = parseList(parsed.features);
       for (const [index, label] of features.entries()) {
-        tx
-          .insert(vehicleFeatures)
-          .values({ vehicleId: id, label, sortOrder: index })
-          .run();
+        await tx.insert(vehicleFeatures).values({ vehicleId: id, label, sortOrder: index });
       }
 
       const specs = parseKeyValueList(parsed.specs);
       for (const [index, spec] of specs.entries()) {
-        tx
-          .insert(vehicleSpecifications)
-          .values({
-            vehicleId: id,
-            group: "general",
-            label: spec.label,
-            value: spec.value,
-            sortOrder: index,
-          })
-          .run();
+        await tx.insert(vehicleSpecifications).values({
+          vehicleId: id,
+          group: "general",
+          label: spec.label,
+          value: spec.value,
+          sortOrder: index,
+        });
       }
 
       const markets = parseMarkets(parsed.markets);
       for (const country of markets) {
-        tx
-          .insert(vehicleMarkets)
-          .values({ vehicleId: id, countryCode: country })
-          .run();
+        await tx.insert(vehicleMarkets).values({ vehicleId: id, countryCode: country });
       }
 
       const steps = parseLogistics(parsed.logistics);
       for (const [index, step] of steps.entries()) {
-        tx
-          .insert(logisticsMilestones)
-          .values({
-            vehicleId: id,
-            label: step.label,
-            description: step.description || null,
-            etaDays: step.etaDays ?? undefined,
-            sortOrder: index,
-          })
-          .run();
+        await tx.insert(logisticsMilestones).values({
+          vehicleId: id,
+          label: step.label,
+          description: step.description || null,
+          etaDays: step.etaDays ?? undefined,
+          sortOrder: index,
+        });
       }
 
       const documents = parseDocuments(parsed.documents);
       for (const doc of documents) {
-        tx
-          .insert(complianceDocuments)
-          .values({
-            vehicleId: id,
-            title: doc.title,
-            url: doc.url,
-          })
-          .run();
+        await tx.insert(complianceDocuments).values({
+          vehicleId: id,
+          title: doc.title,
+          url: doc.url,
+        });
       }
     });
   } catch (error) {

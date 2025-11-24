@@ -4,28 +4,52 @@ import * as React from "react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { calculateLandedCost, type CalculatorSettings } from "@/lib/calculator";
 import { formatCurrency } from "@/lib/utils";
-
-const defaultValues = {
-  baseEur: 45000,
-  logistics: 180000,
-  dutyPercent: 12,
-  excise: 0,
-  recycling: 34000,
-  vatPercent: 20,
-  broker: 45000,
-  commissionPercent: 5,
-};
 
 export interface LandedCostCalculatorProps {
   baseRate: number;
+  settings: CalculatorSettings;
 }
 
-export const LandedCostCalculator: React.FC<LandedCostCalculatorProps> = ({ baseRate }) => {
+export const LandedCostCalculator: React.FC<LandedCostCalculatorProps> = ({
+  baseRate,
+  settings,
+}) => {
   const [form, setForm] = React.useState({
-    ...defaultValues,
+    baseEur: 45_000,
     rate: baseRate,
+    logistics: settings.logisticsBaseCost,
+    dutyPercent: settings.dutyPercent,
+    excise: settings.exciseBaseCost,
+    recycling: settings.recyclingBaseCost,
+    vatPercent: settings.vatPercent,
+    broker: settings.brokerBaseCost,
+    commissionPercent: settings.commissionPercent,
   });
+
+  React.useEffect(() => {
+    setForm((prev) => ({
+      ...prev,
+      rate: baseRate,
+      logistics: settings.logisticsBaseCost,
+      dutyPercent: settings.dutyPercent,
+      excise: settings.exciseBaseCost,
+      recycling: settings.recyclingBaseCost,
+      vatPercent: settings.vatPercent,
+      broker: settings.brokerBaseCost,
+      commissionPercent: settings.commissionPercent,
+    }));
+  }, [
+    baseRate,
+    settings.brokerBaseCost,
+    settings.commissionPercent,
+    settings.dutyPercent,
+    settings.exciseBaseCost,
+    settings.logisticsBaseCost,
+    settings.recyclingBaseCost,
+    settings.vatPercent,
+  ]);
 
   const handleNumberChange = (key: keyof typeof form) => (event: React.ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value.replace(",", ".");
@@ -36,37 +60,28 @@ export const LandedCostCalculator: React.FC<LandedCostCalculatorProps> = ({ base
     }));
   };
 
-  const result = React.useMemo(() => {
-    const baseRub = form.baseEur * form.rate;
-    const duty = (baseRub * form.dutyPercent) / 100;
-    const vatBase = baseRub + duty + form.excise + form.recycling + form.logistics;
-    const vat = (vatBase * form.vatPercent) / 100;
-    const commission = (baseRub * form.commissionPercent) / 100;
-    const total =
-      baseRub +
-      form.logistics +
-      duty +
-      form.excise +
-      form.recycling +
-      vat +
-      form.broker +
-      commission;
-
-    return {
-      baseRub,
-      duty,
-      vat,
-      commission,
-      total,
-    };
-  }, [form]);
+  const result = React.useMemo(
+    () =>
+      calculateLandedCost({
+        baseEur: form.baseEur,
+        rate: form.rate,
+        logistics: form.logistics,
+        dutyPercent: form.dutyPercent,
+        excise: form.excise,
+        recycling: form.recycling,
+        vatPercent: form.vatPercent,
+        broker: form.broker,
+        commissionPercent: form.commissionPercent,
+      }),
+    [form],
+  );
 
   return (
     <div className="grid gap-6 rounded-[36px] border border-white/12 bg-black/45 p-6 text-white lg:grid-cols-[1.1fr_0.9fr]">
       <div className="space-y-4">
         <NumericField
           id="baseEur"
-          label="Стоимость авто, €"
+          label="Стоимость авто, € *"
           value={form.baseEur}
           required
           step="100"
@@ -74,19 +89,14 @@ export const LandedCostCalculator: React.FC<LandedCostCalculatorProps> = ({ base
         />
         <NumericField
           id="rate"
-          label="Курс EUR/RUB"
+          label="Курс EUR/RUB *"
           value={form.rate}
           required
           step="0.1"
           onChange={handleNumberChange("rate")}
         />
         <div className="grid gap-4 md:grid-cols-2">
-          <NumericField
-            id="logistics"
-            label="Логистика, ₽"
-            value={form.logistics}
-            onChange={handleNumberChange("logistics")}
-          />
+          <NumericField id="logistics" label="Логистика, ₽" value={form.logistics} onChange={handleNumberChange("logistics")} />
           <NumericField
             id="dutyPercent"
             label="Пошлина, %"
@@ -94,18 +104,8 @@ export const LandedCostCalculator: React.FC<LandedCostCalculatorProps> = ({ base
             step="0.1"
             onChange={handleNumberChange("dutyPercent")}
           />
-          <NumericField
-            id="excise"
-            label="Акциз, ₽"
-            value={form.excise}
-            onChange={handleNumberChange("excise")}
-          />
-          <NumericField
-            id="recycling"
-            label="Утильсбор, ₽"
-            value={form.recycling}
-            onChange={handleNumberChange("recycling")}
-          />
+          <NumericField id="excise" label="Акциз, ₽" value={form.excise} onChange={handleNumberChange("excise")} />
+          <NumericField id="recycling" label="Утильсбор, ₽" value={form.recycling} onChange={handleNumberChange("recycling")} />
           <NumericField
             id="vatPercent"
             label="НДС, %"
@@ -113,12 +113,7 @@ export const LandedCostCalculator: React.FC<LandedCostCalculatorProps> = ({ base
             step="0.1"
             onChange={handleNumberChange("vatPercent")}
           />
-          <NumericField
-            id="broker"
-            label="Брокер, ₽"
-            value={form.broker}
-            onChange={handleNumberChange("broker")}
-          />
+          <NumericField id="broker" label="Брокер, ₽" value={form.broker} onChange={handleNumberChange("broker")} />
           <NumericField
             id="commissionPercent"
             label="Комиссия B.I.C., %"
@@ -158,12 +153,24 @@ interface NumericFieldProps {
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
+const calculatorInputClassName =
+  "number-input rounded-full border-white/15 bg-black/45 px-5 font-semibold text-white/90 shadow-[0_14px_32px_rgba(0,0,0,0.45)] backdrop-blur focus:border-brand-primary focus:ring-brand-primary/25";
+
 const NumericField: React.FC<NumericFieldProps> = ({ id, label, value, required, step = "1", onChange }) => (
   <div className="space-y-2">
-    <Label htmlFor={id} required={required}>
+    <Label htmlFor={id} required={required} className="text-[11px] font-semibold tracking-[0.14em] text-white/65">
       {label}
     </Label>
-    <Input id={id} name={id} type="number" step={step} defaultValue={value} onChange={onChange} />
+    <Input
+      id={id}
+      name={id}
+      type="number"
+      step={step}
+      inputMode="decimal"
+      defaultValue={value}
+      onChange={onChange}
+      className={calculatorInputClassName}
+    />
   </div>
 );
 

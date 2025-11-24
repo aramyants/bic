@@ -6,7 +6,7 @@ import { exchangeRates } from "@/db/schema";
 
 const TTL_HOURS = 6;
 
-export async function getEurRubRate() {
+export async function getEurRubRate(): Promise<number> {
   const existing = await db
     .select()
     .from(exchangeRates)
@@ -21,7 +21,7 @@ export async function getEurRubRate() {
     isBefore(new Date(), addHours(new Date(current.fetchedAt), TTL_HOURS));
 
   if (current && isFresh) {
-    return current.rate;
+    return Number(current.rate);
   }
 
   const url = process.env.CBR_API_URL ?? "https://www.cbr-xml-daily.ru/daily_json.js";
@@ -35,24 +35,25 @@ export async function getEurRubRate() {
     Valute: { EUR?: { Value: number } };
   };
 
-  const rate = data.Valute?.EUR?.Value;
-  if (!rate) {
+  const rate = Number(data.Valute?.EUR?.Value);
+  if (!Number.isFinite(rate)) {
     throw new Error("Ответ ЦБ РФ не содержит курса EUR");
   }
 
-  const nowIso = new Date().toISOString();
+  const fetchedAt = new Date();
+  const rateValue = rate.toString();
 
   await db
     .insert(exchangeRates)
     .values({
       baseCurrency: "EUR",
       targetCurrency: "RUB",
-      rate,
-      fetchedAt: nowIso,
+      rate: rateValue,
+      fetchedAt,
     })
     .onConflictDoUpdate({
       target: [exchangeRates.baseCurrency, exchangeRates.targetCurrency],
-      set: { rate, fetchedAt: nowIso },
+      set: { rate: rateValue, fetchedAt },
     });
 
   return rate;

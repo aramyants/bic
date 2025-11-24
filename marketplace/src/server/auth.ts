@@ -25,8 +25,7 @@ export async function signIn(email: string, password: string) {
   const expiresAt = getExpiryDate(SESSION_TTL_DAYS)
 
   const headerSource = headers()
-  const resolvedHeaders =
-    typeof (headerSource as unknown as { then?: unknown })?.then === "function" ? await headerSource : headerSource
+  const resolvedHeaders = await Promise.resolve(headerSource)
 
   const getHeaderValue = (key: string) => {
     if (!resolvedHeaders) {
@@ -46,22 +45,6 @@ export async function signIn(email: string, password: string) {
     if (typeof iterable?.entries === "function") {
       for (const [entryKey, entryValue] of iterable.entries()) {
         if (entryKey?.toLowerCase() === normalizedKey) {
-          return entryValue
-        }
-      }
-    }
-
-    if (typeof resolvedHeaders === "object" && resolvedHeaders !== null) {
-      for (const [entryKey, entryValue] of Object.entries(
-        resolvedHeaders as Record<string, string | string[] | undefined>
-      )) {
-        if (entryKey?.toLowerCase() !== normalizedKey) {
-          continue
-        }
-        if (Array.isArray(entryValue)) {
-          return entryValue[0]
-        }
-        if (typeof entryValue === "string") {
           return entryValue
         }
       }

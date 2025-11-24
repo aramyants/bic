@@ -8,24 +8,26 @@ import { InfoTooltip } from "@/components/info-tooltip";
 import { Badge } from "@/components/ui/badge";
 import { VehicleGallery } from "@/components/vehicle-gallery";
 import { COUNTRIES, getBodyTypeLabel } from "@/lib/constants";
+import { toCalculatorSettings } from "@/lib/calculator";
 import { cn, formatCurrency, formatLocaleNumber } from "@/lib/utils";
-import { computeCostBreakdown, getVehicleBySlug } from "@/server/vehicle-service";
+import { getActiveCalculatorConfig } from "@/server/calculator-service";
 import { getEurRubRate } from "@/server/exchange-service";
+import { computeCostBreakdown, getVehicleBySlug } from "@/server/vehicle-service";
 
 const copy = {
-  fallbackDescription: "B.I.C. сопровождает сделку от проверки автомобиля до доставки и постановки на учёт.",
+  fallbackDescription: "B.I.C. помогает купить автомобиль за рубежом и доставить его в Россию под ключ.",
   backToCatalog: "Назад в каталог",
-  basePriceLabel: "Базовая стоимость в Европе",
+  basePriceLabel: "Цена продавца в евро",
   basePriceTooltip:
-    "Цена в евро у дилера или владельца. Для пересчёта в рубли используем актуальный курс EUR/RUB на дату просмотра.",
-  specsTitle: "Особенности комплектации",
-  marketsTitle: "Рынки присутствия",
-  documentsTitle: "Документы, доступные к скачиванию",
-  specsGroupedTitle: "Технические характеристики по разделам",
+    "Цена у продавца до доставки. Для расчёта переводим по текущему курсу EUR/RUB с учётом выбранных ставок.",
+  specsTitle: "Характеристики автомобиля",
+  marketsTitle: "Рынки поставки",
+  documentsTitle: "Документы и сертификаты",
+  specsGroupedTitle: "Дополнительные характеристики",
   logisticsTitle: "Логистика",
   openOriginal: "Открыть оригинальное объявление",
-  docsEmpty: "Документы пока не приложены",
-  marketsEmpty: "Нет данных",
+  docsEmpty: "Документы пока не добавлены",
+  marketsEmpty: "Маркетов нет.",
 } as const;
 
 export default async function VehiclePage({
@@ -35,14 +37,18 @@ export default async function VehiclePage({
 }) {
   const { slug } = await params;
 
-  const eurRubRate = await getEurRubRate().catch(() => 100);
+  const [eurRubRate, calculatorConfig] = await Promise.all([
+    getEurRubRate().catch(() => 100),
+    getActiveCalculatorConfig().catch(() => null),
+  ]);
+  const calculatorSettings = toCalculatorSettings(calculatorConfig);
   const vehicle = await getVehicleBySlug(slug, eurRubRate);
   if (!vehicle) {
     notFound();
   }
 
-  const individual = computeCostBreakdown(vehicle, eurRubRate, "INDIVIDUAL");
-  const company = computeCostBreakdown(vehicle, eurRubRate, "COMPANY");
+  const individual = computeCostBreakdown(vehicle, eurRubRate, "INDIVIDUAL", calculatorSettings);
+  const company = computeCostBreakdown(vehicle, eurRubRate, "COMPANY", calculatorSettings);
 
   const countryNames = vehicle.markets
     .map((market) => COUNTRIES.find((country) => country.code === market.countryCode)?.name ?? market.countryCode)
@@ -50,7 +56,7 @@ export default async function VehiclePage({
 
   const specsGrouped = vehicle.specifications.reduce<Record<string, { label: string; value: string }[]>>(
     (acc, spec) => {
-      const key = translateSpecGroup(spec.group ?? copy.specsDefaultGroup);
+      const key = translateSpecGroup(spec.group ?? copy.specsGroupedTitle);
       if (!acc[key]) acc[key] = [];
       acc[key].push({ label: translateSpecLabel(spec.label), value: spec.value });
       return acc;
@@ -97,7 +103,7 @@ export default async function VehiclePage({
           <div className="rounded-[32px] border border-white/10 bg-black/30 p-6 shadow-lg shadow-black/20">
             <div className="flex items-center justify-between gap-3">
               <h3 className="text-lg font-semibold text-white">Ключевые факты</h3>
-              <span className="text-xs uppercase tracking-[0.1em] text-white/45">быстрый обзор</span>
+              <span className="text-xs uppercase tracking-[0.1em] text-white/45">Быстрый обзор</span>
             </div>
             <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
               {highlightSpecs.map((item) => (
@@ -116,13 +122,13 @@ export default async function VehiclePage({
             <div className="flex items-center justify-between gap-3">
               <h3 className="text-lg font-semibold text-white">Рынки и документы</h3>
               <span className="text-xs text-white/50">
-                {documentPreview.length ? `${documentPreview.length} файл(ов)` : "нет файлов"}
+                {documentPreview.length ? `${documentPreview.length} файл(а)` : "Документов нет"}
               </span>
             </div>
 
             <div className="mt-4 space-y-4">
               <div className="space-y-2">
-                <div className="text-xs uppercase tracking-[0.08em] text-white/45">рынки</div>
+                <div className="text-xs uppercase tracking-[0.08em] text-white/45">Рынки</div>
                 <div className="flex flex-wrap gap-2">
                   {countryNames.length ? (
                     countryNames.map((country) => (
@@ -137,7 +143,7 @@ export default async function VehiclePage({
               </div>
 
               <div className="space-y-2">
-                <div className="text-xs uppercase tracking-[0.08em] text-white/45">документы</div>
+                <div className="text-xs uppercase tracking-[0.08em] text-white/45">Документы</div>
                 {documentPreview.length ? (
                   <ul className="space-y-2 text-sm text-white/75">
                     {documentPreview.map((doc) => (
@@ -185,7 +191,9 @@ export default async function VehiclePage({
               {formatCurrency(vehicle.basePriceEur, "EUR")}
               <InfoTooltip label={copy.basePriceTooltip} />
             </div>
-            <div className="text-xs text-white/50">≈ {formatCurrency(vehicle.basePriceEur * eurRubRate, "RUB")} по курсу EUR/RUB</div>
+            <div className="text-xs text-white/50">
+              ≈ {formatCurrency(vehicle.basePriceEur * eurRubRate, "RUB")} по текущему курсу EUR/RUB
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
@@ -259,7 +267,7 @@ export default async function VehiclePage({
                 <div className="text-white">{step.label}</div>
                 <div className="text-white/60">{step.description}</div>
               </div>
-              <div className="text-xs uppercase tracking-[0.1em] text-white/50">{step.etaDays ? `${step.etaDays} дней` : ""}</div>
+              <div className="text-xs uppercase tracking-[0.1em] text-white/50">{step.etaDays ? `${step.etaDays} дн.` : ""}</div>
             </div>
           ))}
         </div>
@@ -333,7 +341,7 @@ function translateSpecLabel(label: string) {
   const map: Record<string, string> = {
     engine: "Двигатель",
     power: "Мощность",
-    gearbox: "Коробка передач",
+    gearbox: "Коробка",
     trim: "Отделка",
   };
   const key = label.toLowerCase();

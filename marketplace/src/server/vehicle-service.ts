@@ -10,6 +10,7 @@ import {
   complianceDocuments,
   inquiries,
 } from "@/db/schema";
+import { CERTIFICATION_COST, DEFAULT_CALCULATOR_SETTINGS, type CalculatorSettings } from "@/lib/calculator";
 import { formatCurrency } from "@/lib/utils";
 import type { VehicleCardModel } from "@/lib/vehicle-card-model";
 
@@ -36,15 +37,6 @@ export interface VehicleFilter {
 }
 
 export type VehicleWithRelations = NonNullable<Awaited<ReturnType<typeof getVehicleBySlug>>>;
-
-const BASE_LOGISTICS = {
-  insuranceBps: 120,
-  serviceFeeBpsIndividual: 90,
-  serviceFeeBpsCompany: 120,
-  documentPackage: 45000,
-  customsBroker: 35000,
-  certification: 28000,
-};
 
 const toCents = (value?: number | null) => (value ?? 0) * 100;
 
@@ -75,9 +67,14 @@ export async function getVehicles(filter: VehicleFilter = {}) {
 
   if (filter.search) {
     const pattern = `%${filter.search.toLowerCase()}%`;
-    expressions.push(
-      or(like(vehicles.brand, pattern), like(vehicles.model, pattern), like(vehicles.title, pattern)),
+    const searchExpression = or(
+      like(vehicles.brand, pattern),
+      like(vehicles.model, pattern),
+      like(vehicles.title, pattern),
     );
+    if (searchExpression) {
+      expressions.push(searchExpression);
+    }
   }
 
   if (filter.brand) {
@@ -238,19 +235,25 @@ export function computeCostBreakdown(
   vehicle: ReturnType<typeof transformVehicle>,
   rateRubPerEur: number,
   customerType: "INDIVIDUAL" | "COMPANY" = "INDIVIDUAL",
+  calculatorSettings: CalculatorSettings = DEFAULT_CALCULATOR_SETTINGS,
 ) {
+  const settings =
+    calculatorSettings && calculatorSettings.applyToVehicles === false
+      ? DEFAULT_CALCULATOR_SETTINGS
+      : calculatorSettings ?? DEFAULT_CALCULATOR_SETTINGS;
+
   const baseRub = Math.round((vehicle.basePriceEur * rateRubPerEur) / 100) * 100;
-  const vatBps = vehicle.vatRateBps ?? (customerType === "COMPANY" ? 2000 : 0);
-  const customsBps = vehicle.customsDutyBps ?? 1500;
-  const serviceBps =
-    customerType === "COMPANY" ? BASE_LOGISTICS.serviceFeeBpsCompany : BASE_LOGISTICS.serviceFeeBpsIndividual;
+  const vatBps = vehicle.vatRateBps ?? Math.round(settings.vatPercent * 100);
+  const customsBps = vehicle.customsDutyBps ?? Math.round(settings.dutyPercent * 100);
+  const servicePercent =
+    customerType === "COMPANY" ? settings.serviceFeeCompanyPercent : settings.serviceFeeIndividualPercent;
 
   const vat = Math.round((baseRub * vatBps) / 10000);
   const customs = Math.round((baseRub * customsBps) / 10000);
-  const insurance = Math.round((baseRub * BASE_LOGISTICS.insuranceBps) / 10000);
-  const service = Math.round((baseRub * serviceBps) / 10000);
-  const broker = BASE_LOGISTICS.customsBroker;
-  const documents = BASE_LOGISTICS.documentPackage + BASE_LOGISTICS.certification;
+  const insurance = Math.round((baseRub * settings.insurancePercent) / 100);
+  const service = Math.round((baseRub * servicePercent) / 100);
+  const broker = settings.brokerBaseCost;
+  const documents = settings.documentPackageCost + CERTIFICATION_COST;
 
   const total = baseRub + vat + customs + insurance + service + broker + documents;
 

@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
@@ -22,6 +23,17 @@ const SERVICE_STRIP = "24/7 • 25 стран";
 
 export const SiteHeader: React.FC = () => {
   const [menuOpen, setMenuOpen] = React.useState(false);
+  const pathname = usePathname();
+
+  const isActive = (href: string) => {
+    const normalizePath = (path: string) => (path === "/" ? "/" : path.replace(/\/+$/, ""));
+    const current = normalizePath(pathname || "/");
+    const target = normalizePath(href);
+
+    if (target === "/") return current === "/";
+
+    return current === target || current.startsWith(`${target}/`);
+  };
 
   React.useEffect(() => {
     if (!menuOpen) {
@@ -56,7 +68,15 @@ export const SiteHeader: React.FC = () => {
 
         <nav className="hidden items-center gap-6 text-sm font-medium text-white/70 xl:flex">
           {NAV_ITEMS.map((item) => (
-            <Link key={item.href} href={item.href} className="transition hover:text-white">
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={isActive(item.href) ? "page" : undefined}
+              className={cn(
+                "transition hover:text-white",
+                isActive(item.href) ? "text-white" : "text-white/70",
+              )}
+            >
               {item.label}
             </Link>
           ))}
@@ -97,7 +117,11 @@ export const SiteHeader: React.FC = () => {
             <Link
               key={item.href}
               href={item.href}
-              className="block rounded-full bg-white/5 px-4 py-3 text-center hover:bg-white/10"
+              aria-current={isActive(item.href) ? "page" : undefined}
+              className={cn(
+                "block rounded-full px-4 py-3 text-center transition hover:bg-white/10",
+                isActive(item.href) ? "bg-white/10 text-white" : "bg-white/5",
+              )}
               onClick={() => setMenuOpen(false)}
             >
               {item.label}

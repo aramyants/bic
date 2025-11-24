@@ -28,7 +28,9 @@ export default async function EditCalculatorConfigPage({
 
     const name = formData.get('name') as string;
     const description = formData.get('description') as string;
+    const mode = (formData.get('mode') as string) || 'standard';
     const isActive = formData.get('isActive') === 'on';
+    const applyToVehicles = formData.get('applyToVehicles') !== 'off';
     const logisticsBaseCost = Number.parseInt(
       formData.get('logisticsBaseCost') as string
     );
@@ -45,11 +47,23 @@ export default async function EditCalculatorConfigPage({
       formData.get('brokerBaseCost') as string
     );
     const commissionPercent = formData.get('commissionPercent') as string;
+    const insurancePercent = formData.get('insurancePercent') as string;
+    const serviceFeeIndividualPercent = formData.get(
+      'serviceFeeIndividualPercent'
+    ) as string;
+    const serviceFeeCompanyPercent = formData.get(
+      'serviceFeeCompanyPercent'
+    ) as string;
+    const documentPackageCost = Number.parseInt(
+      formData.get('documentPackageCost') as string
+    );
 
     await updateCalculatorConfig(id, {
       name,
       description: description || null,
+      mode,
       isActive,
+      applyToVehicles,
       logisticsBaseCost,
       logisticsCostPerKm,
       dutyPercent,
@@ -58,6 +72,10 @@ export default async function EditCalculatorConfigPage({
       vatPercent,
       brokerBaseCost,
       commissionPercent,
+      insurancePercent,
+      serviceFeeIndividualPercent,
+      serviceFeeCompanyPercent,
+      documentPackageCost,
     });
 
     redirect('/admin/calculator');
@@ -92,7 +110,8 @@ export default async function EditCalculatorConfigPage({
               Редактирование конфигурации
             </h1>
             <p className="mt-1 text-sm text-white/60">
-              Поддерживайте актуальные ставки пошлин, НДС и логистики.
+              Измените ставки и нажмите «Сделать активной», чтобы применить
+              формулу на сайте.
             </p>
           </div>
         </div>
@@ -100,7 +119,7 @@ export default async function EditCalculatorConfigPage({
           {!config.isActive && (
             <form action={handleSetActive}>
               <Button type="submit" size="sm">
-                Set active
+                Сделать активной
               </Button>
             </form>
           )}
@@ -109,7 +128,7 @@ export default async function EditCalculatorConfigPage({
               type="submit"
               className="rounded-lg border border-red-500/50 px-4 py-2 text-sm font-medium text-red-400 transition hover:bg-red-500/10"
             >
-              Delete
+              Удалить
             </button>
           </form>
         </div>

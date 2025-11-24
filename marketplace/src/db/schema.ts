@@ -359,7 +359,7 @@ export const calculatorConfig = pgTable('calculator_config', {
   serviceFeeCompanyPercent: numeric('service_fee_company_percent')
     .notNull()
     .default('1.2'),
-  documentPackageCost: integer('document_package_cost').notNull().default(28000),
+  documentPackageCost: integer('document_package_cost').notNull().default(45000),
   description: text('description'),
   createdAt: timestamp('created_at', { withTimezone: false })
     .defaultNow()

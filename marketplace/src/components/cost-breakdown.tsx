@@ -41,7 +41,10 @@ export const CostCalculator: React.FC<CostCalculatorProps> = ({ individual, comp
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           <h3 className="text-lg font-semibold text-white">Финальный расчёт</h3>
-          <p className="text-xs text-white/55">Разница в ставках для физических лиц и компаний учитывается ниже.</p>
+          <p className="text-xs text-white/55">
+            Ставки отличаются для физ. и юр. лиц. Выберите нужный вариант, чтобы увидеть актуальные цифры — суммы
+            обновятся мгновенно.
+          </p>
         </div>
         <div className="flex flex-shrink-0 items-center gap-3 text-xs text-white/70 whitespace-nowrap">
           <span className={!isCompany ? "text-white" : undefined}>Физ. лицо</span>
@@ -65,8 +68,8 @@ export const CostCalculator: React.FC<CostCalculatorProps> = ({ individual, comp
         <span className="text-2xl font-semibold">{formatCurrency(breakdown.total, "RUB")}</span>
       </div>
       <p className="text-xs text-white/55">
-        Итоговая сумма может корректироваться с учётом курса EUR/RUB, ставок портов и выбранной логистики. Подтверждение
-        расчёта происходит после проверки лота и фиксации договора.
+        Итоговая сумма может меняться с учётом курса EUR/RUB и выбранной логистики. Для фиксации расчёта отправьте
+        заявку менеджеру — проверим автомобиль и подтвердим условия.
       </p>
     </div>
   );
