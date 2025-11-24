@@ -60,3 +60,12 @@
 - `npm run db:seed` — создать администратора (используются переменные из `.env`)
 - `npm run db:seed-demo` — наполнить витрину тестовыми автомобилями
 - `npm run build && npm start` — production-сборка и запуск
+
+## Telegram / bot setup
+
+- `TELEGRAM_BOT_TOKEN` — bot token from BotFather.
+- `TELEGRAM_MANAGER_CHAT_ID` — chat/group ID for manager notifications.
+- `TELEGRAM_CHANNEL_ID` — channel for auto-posting cars (optional).
+- `PUBLIC_APP_URL` — public https:// domain for deep links (for example, https://example.com).
+- `NEXT_PUBLIC_TELEGRAM_BOT_USERNAME` or `NEXT_PUBLIC_TELEGRAM_CONTACT_LINK` — used to open chat from the request modal.
+- Webhook endpoint: `/api/telegram/webhook` (configure via `setWebhook`).

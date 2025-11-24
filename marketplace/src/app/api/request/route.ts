@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { contactFormSchema, normalizePhone, normalizeTelegram } from "@/lib/forms";
 import { sendInquiryEmail } from "@/server/email";
+import { sendLeadToTelegram } from "@/server/telegram";
 import { recordInquiry } from "@/server/vehicle-service";
 
 export async function POST(request: Request) {
@@ -48,11 +49,26 @@ export async function POST(request: Request) {
       <h1>Новая заявка</h1>
       <p><strong>Имя:</strong> ${data.name}</p>
       <p><strong>Email:</strong> ${data.email}</p>
-      <p><strong>Телефон:</strong> ${formattedPhone} (${country})</p>
+      <p><strong>Телефон:</strong> ${formattedPhone} (${phoneCountry})</p>
       ${telegram ? `<p><strong>Telegram:</strong> ${telegram}</p>` : ""}
       ${data.message ? `<p><strong>Комментарий:</strong> ${data.message}</p>` : ""}
     `,
   );
+
+  await sendLeadToTelegram({
+    name: data.name,
+    email: data.email,
+    phone: formattedPhone,
+    telegram,
+    message: data.message,
+    pageUrl: typeof raw.pageUrl === "string" ? raw.pageUrl : undefined,
+    vehicleTitle: typeof raw.vehicleTitle === "string" ? raw.vehicleTitle : undefined,
+    vehicleSlug: typeof raw.vehicleSlug === "string" ? raw.vehicleSlug : undefined,
+    vehicleId: typeof raw.vehicleId === "string" ? raw.vehicleId : undefined,
+    priceEur: typeof raw.priceEur === "string" ? raw.priceEur : undefined,
+    priceRub: typeof raw.priceRub === "string" ? raw.priceRub : undefined,
+    source: typeof raw.source === "string" ? raw.source : undefined,
+  });
 
   return NextResponse.redirect(new URL("/?submitted=1", request.url), { status: 303 });
 }

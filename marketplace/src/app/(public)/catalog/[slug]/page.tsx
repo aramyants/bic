@@ -7,6 +7,7 @@ import { FavoriteToggle } from "@/components/favorite-toggle";
 import { InfoTooltip } from "@/components/info-tooltip";
 import { Badge } from "@/components/ui/badge";
 import { VehicleGallery } from "@/components/vehicle-gallery";
+import { RequestCtaCard } from "@/components/request-cta";
 import { COUNTRIES, getBodyTypeLabel } from "@/lib/constants";
 import { toCalculatorSettings } from "@/lib/calculator";
 import { cn, formatCurrency, formatLocaleNumber } from "@/lib/utils";
@@ -216,6 +217,13 @@ export default async function VehiclePage({
           </div>
 
           <CostCalculator individual={individual} company={company} />
+          <RequestCtaCard
+            vehicleId={vehicle.id}
+            vehicleSlug={vehicle.slug}
+            vehicleTitle={vehicle.title}
+            priceEur={vehicle.basePriceEur}
+            priceRub={individual.total}
+          />
         </div>
       </div>
 

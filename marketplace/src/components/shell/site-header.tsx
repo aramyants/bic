@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
+import { useRequestModal } from "@/components/request-modal";
 
 const NAV_ITEMS = [
   { href: "/", label: "Главная" },
@@ -24,6 +25,7 @@ const SERVICE_STRIP = "24/7 • 25 стран";
 export const SiteHeader: React.FC = () => {
   const [menuOpen, setMenuOpen] = React.useState(false);
   const pathname = usePathname();
+  const requestModal = useRequestModal();
 
   const isActive = (href: string) => {
     const normalizePath = (path: string) => (path === "/" ? "/" : path.replace(/\/+$/, ""));
@@ -84,12 +86,13 @@ export const SiteHeader: React.FC = () => {
 
         <div className="hidden items-center gap-4 xl:flex">
           <div className="text-xs text-white/55">{}</div>
-          <Link
-            href="#request"
+          <button
+            type="button"
+            onClick={() => requestModal.open({ source: "header" })}
             className="inline-flex h-10 items-center justify-center rounded-full bg-brand-primary px-6 text-xs font-semibold text-white transition hover:bg-brand-primary-strong"
           >
             {CTA_LABEL}
-          </Link>
+          </button>
         </div>
 
         <button
@@ -129,13 +132,16 @@ export const SiteHeader: React.FC = () => {
               {item.label}
             </Link>
           ))}
-          <Link
-            href="#request"
-            onClick={() => setMenuOpen(false)}
+          <button
+            type="button"
+            onClick={() => {
+              requestModal.open({ source: "header" });
+              setMenuOpen(false);
+            }}
             className="inline-flex h-12 w-full items-center justify-center rounded-full bg-brand-primary text-xs font-semibold text-white transition hover:bg-brand-primary-strong"
           >
             {CTA_LABEL}
-          </Link>
+          </button>
           <div className="text-center text-xs text-white/45">{SERVICE_STRIP}</div>
         </div>
       </div>

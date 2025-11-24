@@ -77,7 +77,7 @@ export async function createBrandLogoAction(
   }
 
   try {
-    await createBrandLogo(parsed.data);
+    await createBrandLogo(parsed.data as Omit<BrandLogo, 'id' | 'createdAt' | 'updatedAt'>);
     revalidatePath('/');
     revalidatePath('/admin/brand-logos');
     revalidatePath('/admin');
@@ -112,7 +112,7 @@ export async function updateBrandLogoAction(
   }
 
   try {
-    await updateBrandLogo(id, parsed.data);
+    await updateBrandLogo(id, parsed.data as Partial<BrandLogo>);
     revalidatePath('/');
     revalidatePath('/admin/brand-logos');
     revalidatePath('/admin');

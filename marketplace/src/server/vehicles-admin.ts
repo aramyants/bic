@@ -17,6 +17,8 @@ import {
 } from "@/db/schema";
 import { slugify } from "@/lib/utils";
 import { requireAdmin } from "@/server/auth";
+import { getVehicleById } from "@/server/vehicle-service";
+import { postVehicleToChannel } from "@/server/telegram";
 
 const emptyToUndefined = <T extends z.ZodTypeAny>(schema: T) =>
   z.preprocess((value) => {
@@ -229,6 +231,15 @@ export async function createVehicleAction(
 
   revalidatePath("/catalog");
   revalidatePath("/admin");
+
+  try {
+    const createdVehicle = await getVehicleById(vehicleId);
+    if (createdVehicle) {
+      await postVehicleToChannel(createdVehicle);
+    }
+  } catch (error) {
+    console.error("[vehicles-admin] failed to push vehicle to Telegram", error);
+  }
 
   return {
     status: "success",

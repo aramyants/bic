@@ -22,7 +22,7 @@ import {
   normalizeTelegram,
   PHONE_COUNTRY_OPTIONS,
 } from "@/lib/forms";
-import { formatLocaleNumber } from "@/lib/utils";
+import { cn, formatLocaleNumber } from "@/lib/utils";
 
 const DEFAULT_COUNTRY: CountryCode = "RU";
 
@@ -47,9 +47,26 @@ const TIMEZONE_TO_COUNTRY: Record<string, CountryCode> = {
   "America/New_York": "US",
 };
 
+export type ContactFormContext = {
+  source?: string;
+  pageUrl?: string;
+  vehicleId?: string;
+  vehicleSlug?: string;
+  vehicleTitle?: string;
+  priceEur?: number;
+  priceRub?: number;
+};
+
+type ContactFormProps = {
+  context?: ContactFormContext;
+  defaultMessage?: string;
+  className?: string;
+  onSubmitted?: () => void;
+};
+
 type FormValues = z.input<typeof contactFormSchema>;
 
-export function ContactForm() {
+export function ContactForm({ context, defaultMessage, className, onSubmitted }: ContactFormProps) {
   const router = useRouter();
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [showCountries, setShowCountries] = useState(false);
@@ -65,9 +82,9 @@ export function ContactForm() {
       email: "",
       phone: "",
       phoneE164: undefined,
-      phoneCountry: null,
+      phoneCountry: undefined,
       telegram: "",
-      message: "",
+      message: defaultMessage ?? "",
     },
   });
 
@@ -150,11 +167,19 @@ export function ContactForm() {
     hasAutoDetected.current = true;
   }, [form]);
 
+  useEffect(() => {
+    if (defaultMessage) {
+      form.setValue("message", defaultMessage, { shouldDirty: false, shouldValidate: false });
+    }
+  }, [defaultMessage, form]);
+
   const onSubmit = async (values: FormValues) => {
     setSubmitError(null);
     const country = (values.phoneCountry || DEFAULT_COUNTRY).toUpperCase() as CountryCode;
     const phoneNumber = normalizePhone(values.phone, country);
     const normalizedTelegram = normalizeTelegram(values.telegram, country);
+    const pageUrl =
+      context?.pageUrl ?? (typeof window !== "undefined" ? window.location.href : undefined) ?? undefined;
 
     const formData = new FormData();
     formData.set("name", values.name.trim());
@@ -171,6 +196,13 @@ export function ContactForm() {
       formData.set("message", values.message);
     }
     formData.set("customerType", "INDIVIDUAL");
+    if (context?.source) formData.set("source", context.source);
+    if (pageUrl) formData.set("pageUrl", pageUrl);
+    if (context?.vehicleId) formData.set("vehicleId", context.vehicleId);
+    if (context?.vehicleSlug) formData.set("vehicleSlug", context.vehicleSlug);
+    if (context?.vehicleTitle) formData.set("vehicleTitle", context.vehicleTitle);
+    if (context?.priceEur) formData.set("priceEur", String(context.priceEur));
+    if (context?.priceRub) formData.set("priceRub", String(context.priceRub));
 
     try {
       const response = await fetch("/api/request", {
@@ -178,7 +210,7 @@ export function ContactForm() {
         body: formData,
       });
 
-      if (response.redirected) {
+      if (response.redirected && !onSubmitted) {
         router.replace(response.url);
         return;
       }
@@ -188,7 +220,12 @@ export function ContactForm() {
         return;
       }
 
-      router.replace("/?submitted=1");
+      if (onSubmitted) {
+        onSubmitted();
+        form.reset({ ...form.getValues(), message: defaultMessage ?? "" });
+      } else {
+        router.replace("/?submitted=1");
+      }
     } catch {
       setSubmitError("Не удалось отправить заявку. Проверьте данные и попробуйте снова.");
     }
@@ -201,7 +238,10 @@ export function ContactForm() {
       onSubmit={form.handleSubmit(onSubmit)}
       noValidate
       id="request"
-      className="flex flex-col gap-4 rounded-[36px] border border-white/12 bg-black/45 p-5 backdrop-blur sm:p-8"
+      className={cn(
+        "flex flex-col gap-4 rounded-[36px] border border-white/12 bg-black/45 p-5 backdrop-blur sm:p-8",
+        className,
+      )}
     >
       <div className="space-y-1.5">
         <Input
