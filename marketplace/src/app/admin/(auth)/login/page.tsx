@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ export default async function LoginPage({
   }
 
   const showError = params?.error === "1";
+  const resetSuccess = params?.reset === "1";
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-[480px] flex-col justify-center gap-6 px-6 text-white">
@@ -27,11 +29,19 @@ export default async function LoginPage({
           Используйте учётную запись администратора, чтобы управлять каталогом, заявками и настройками площадки.
         </p>
       </div>
+
       {showError ? (
         <div className="rounded-[28px] border border-red-500/40 bg-red-500/15 px-4 py-3 text-sm text-red-100">
           Неверный email или пароль. Проверьте данные и попробуйте ещё раз.
         </div>
       ) : null}
+
+      {resetSuccess ? (
+        <div className="rounded-[28px] border border-emerald-500/40 bg-emerald-500/15 px-4 py-3 text-sm text-emerald-50">
+          Пароль обновлён. Войдите с новыми данными.
+        </div>
+      ) : null}
+
       <form action={loginAction} className="space-y-4 rounded-[32px] border border-white/10 bg-white/6 p-6">
         <div className="space-y-2">
           <label className="text-xs text-white/55" htmlFor="email">
@@ -62,6 +72,12 @@ export default async function LoginPage({
         <Button type="submit" className="w-full">
           Войти
         </Button>
+        <div className="text-center text-xs text-white/55">
+          Забыли пароль?{" "}
+          <Link href="/admin/forgot" className="text-white underline-offset-4 hover:underline">
+            Восстановить доступ
+          </Link>
+        </div>
       </form>
     </div>
   );

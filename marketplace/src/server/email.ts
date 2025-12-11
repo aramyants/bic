@@ -1,13 +1,13 @@
-﻿import nodemailer from "nodemailer";
+import nodemailer from "nodemailer";
 
 const { SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, EMAIL_FROM, ADMIN_EMAIL } = process.env;
 
-const isEmailConfigured = Boolean(SMTP_HOST && EMAIL_FROM && ADMIN_EMAIL);
+const isEmailConfigured = Boolean(SMTP_HOST && EMAIL_FROM);
 
-export async function sendInquiryEmail(subject: string, html: string) {
+async function sendEmail(to: string, subject: string, html: string) {
   if (!isEmailConfigured) {
     console.warn("SMTP credentials are not fully configured; skipping email send.");
-    return;
+    return false;
   }
 
   const transporter = nodemailer.createTransport({
@@ -19,8 +19,22 @@ export async function sendInquiryEmail(subject: string, html: string) {
 
   await transporter.sendMail({
     from: EMAIL_FROM,
-    to: ADMIN_EMAIL,
+    to,
     subject,
     html,
   });
+
+  return true;
+}
+
+export async function sendInquiryEmail(subject: string, html: string) {
+  if (!ADMIN_EMAIL) {
+    console.warn("ADMIN_EMAIL is not configured; skipping inquiry email send.");
+    return false;
+  }
+  return sendEmail(ADMIN_EMAIL, subject, html);
+}
+
+export async function sendUserEmail(to: string, subject: string, html: string) {
+  return sendEmail(to, subject, html);
 }

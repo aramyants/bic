@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { z } from 'zod';
 
 import type { BrandLogo } from '@/db/schema';
@@ -135,4 +136,5 @@ export async function deleteBrandLogoAction(formData: FormData) {
   revalidatePath('/');
   revalidatePath('/admin/brand-logos');
   revalidatePath('/admin');
+  redirect('/admin/brand-logos');
 }

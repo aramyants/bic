@@ -1,0 +1,26 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Next build artifacts
+.next
+out
+
+# Logs and misc
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+*.log
+
+# Local env and VCS
+.env
+.env.*
+.git
+.gitignore
+.vscode
+
+# Tests and coverage
+coverage
+
+# OS junk
+*.DS_Store

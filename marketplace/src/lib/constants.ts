@@ -78,6 +78,38 @@ export const FUEL_TYPE_LABELS: Record<(typeof FUEL_TYPES)[number], string> = {
   LPG: "Газ",
 };
 
+export const COLORS = [
+  "Black",
+  "White",
+  "Silver",
+  "Grey",
+  "Blue",
+  "Red",
+  "Green",
+  "Orange",
+  "Yellow",
+  "Brown",
+  "Beige",
+  "Purple",
+  "Pink",
+] as const;
+
+export const COLOR_LABELS: Record<(typeof COLORS)[number], string> = {
+  Black: "Чёрный",
+  White: "Белый",
+  Silver: "Серебристый",
+  Grey: "Серый",
+  Blue: "Синий",
+  Red: "Красный",
+  Green: "Зелёный",
+  Orange: "Оранжевый",
+  Yellow: "Жёлтый",
+  Brown: "Коричневый",
+  Beige: "Бежевый",
+  Purple: "Фиолетовый",
+  Pink: "Розовый",
+};
+
 export const UNIT_LABELS = {
   km: "км",
   KM: "км",

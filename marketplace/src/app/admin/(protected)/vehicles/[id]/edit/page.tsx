@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 
 import { VehicleForm } from "@/components/admin/vehicle-form";
 import { getVehicleById } from "@/server/vehicle-service";
+import { getTaxonomyMap } from "@/server/taxonomy-service";
 import { updateVehicleAction, deleteVehicleAction } from "@/server/vehicles-admin";
 
 type RouteParams = Promise<{ id: string }> | { id: string };
@@ -12,6 +13,16 @@ export default async function EditVehiclePage({ params }: { params: RouteParams 
   if (!vehicle) {
     notFound();
   }
+  const taxonomies = await getTaxonomyMap();
+  const formTaxonomies = {
+    brand: taxonomies.brand.map((t) => t.value),
+    model: taxonomies.model.map((t) => t.value),
+    bodyType: taxonomies.bodyType.map((t) => t.value),
+    fuelType: taxonomies.fuelType.map((t) => t.value),
+    transmission: taxonomies.transmission.map((t) => t.value),
+    driveType: taxonomies.driveType.map((t) => t.value),
+    color: taxonomies.color.map((t) => t.value),
+  };
 
   const defaults = {
     id: vehicle.id,
@@ -29,6 +40,7 @@ export default async function EditVehiclePage({ params }: { params: RouteParams 
     driveType: vehicle.driveType ?? "",
     engineVolumeCc: vehicle.engineVolumeCc ?? "",
     powerHp: vehicle.powerHp ?? "",
+    color: vehicle.color ?? "",
     shortDescription: vehicle.shortDescription ?? "",
     originalListingUrl: vehicle.originalListingUrl ?? "",
     thumbnailUrl: vehicle.thumbnailUrl ?? "",
@@ -59,7 +71,7 @@ export default async function EditVehiclePage({ params }: { params: RouteParams 
           </button>
         </form>
       </div>
-      <VehicleForm action={updateVehicleAction} defaultValues={defaults} submitLabel="Сохранить изменения" />
+      <VehicleForm action={updateVehicleAction} defaultValues={defaults} taxonomies={formTaxonomies} submitLabel="Сохранить изменения" />
     </div>
   );
 }

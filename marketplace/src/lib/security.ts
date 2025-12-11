@@ -3,6 +3,7 @@ import crypto from "node:crypto";
 
 const TOKEN_BYTE_LENGTH = 48;
 const TOKEN_TTL_DAYS = 7;
+const OTP_CODE_LENGTH = 6;
 
 const getSecret = () => {
   const secret = process.env.AUTH_TOKEN_SECRET;
@@ -26,6 +27,18 @@ export const generateSessionToken = () => {
 
 export const hashSessionToken = (token: string) => {
   return crypto.createHmac("sha256", getSecret()).update(token).digest("hex");
+};
+
+export const generateOtpCode = (length: number = OTP_CODE_LENGTH) => {
+  let code = "";
+  for (let i = 0; i < length; i += 1) {
+    code += Math.floor(Math.random() * 10).toString();
+  }
+  return code;
+};
+
+export const hashOtpCode = (code: string) => {
+  return crypto.createHmac("sha256", getSecret()).update(code).digest("hex");
 };
 
 export const getExpiryDate = (days: number = TOKEN_TTL_DAYS) => {

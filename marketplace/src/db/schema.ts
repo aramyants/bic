@@ -56,6 +56,59 @@ export const adminSessions = pgTable(
   })
 );
 
+export type AdminSession = typeof adminSessions.$inferSelect;
+export type NewAdminSession = typeof adminSessions.$inferInsert;
+
+export const vehicleTaxonomies = pgTable(
+  'vehicle_taxonomies',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    type: text('type').notNull(),
+    value: text('value').notNull(),
+    label: text('label').notNull(),
+    parentValue: text('parent_value'),
+    sortOrder: integer('sort_order').notNull().default(0),
+    createdAt: timestamp('created_at', { withTimezone: false })
+      .defaultNow()
+      .notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: false })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    typeValueIdx: uniqueIndex('vehicle_taxonomies_type_value_idx').on(table.type, table.value),
+    typeSortIdx: index('vehicle_taxonomies_type_sort_idx').on(table.type, table.sortOrder),
+    parentIdx: index('vehicle_taxonomies_parent_idx').on(table.parentValue),
+  })
+);
+
+export type VehicleTaxonomy = typeof vehicleTaxonomies.$inferSelect;
+export type NewVehicleTaxonomy = typeof vehicleTaxonomies.$inferInsert;
+
+export const passwordResetTokens = pgTable(
+  'password_reset_tokens',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    tokenHash: text('token_hash').notNull(),
+    otpHash: text('otp_hash').notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: false }).notNull(),
+    usedAt: timestamp('used_at', { withTimezone: false }),
+    createdAt: timestamp('created_at', { withTimezone: false })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    tokenIdx: uniqueIndex('password_reset_token_idx').on(table.tokenHash),
+    userIdx: index('password_reset_user_idx').on(table.userId),
+  })
+);
+
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type NewPasswordResetToken = typeof passwordResetTokens.$inferInsert;
+
 export const vehicles = pgTable(
   'vehicles',
   {
@@ -236,6 +289,8 @@ export const exchangeRates = pgTable(
 
 export const usersRelations = relations(users, ({ many }) => ({
   sessions: many(adminSessions),
+  resetTokens: many(passwordResetTokens),
+  taxonomies: many(vehicleTaxonomies),
 }));
 
 export const vehiclesRelations = relations(vehicles, ({ many }) => ({
@@ -315,6 +370,26 @@ export const adminSessionsRelations = relations(adminSessions, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+export const passwordResetTokensRelations = relations(
+  passwordResetTokens,
+  ({ one }) => ({
+    user: one(users, {
+      fields: [passwordResetTokens.userId],
+      references: [users.id],
+    }),
+  })
+);
+
+export const vehicleTaxonomiesRelations = relations(
+  vehicleTaxonomies,
+  ({ one }) => ({
+    parent: one(vehicleTaxonomies, {
+      fields: [vehicleTaxonomies.parentValue],
+      references: [vehicleTaxonomies.value],
+    }),
+  })
+);
 
 // Testimonials
 export const testimonials = pgTable('testimonials', {

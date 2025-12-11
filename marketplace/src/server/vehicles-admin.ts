@@ -1,6 +1,7 @@
 ﻿"use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
 import crypto from "node:crypto";
@@ -55,6 +56,7 @@ const vehicleSchema = z.object({
   driveType: optionalText(),
   engineVolumeCc: optionalInt(),
   powerHp: optionalInt(),
+  color: optionalText(),
   shortDescription: optionalText(),
   originalListingUrl: optionalUrl(),
   thumbnailUrl: optionalUrl(),
@@ -157,6 +159,7 @@ export async function createVehicleAction(
       driveType: parsed.driveType ?? null,
       engineVolumeCc: parsed.engineVolumeCc ?? null,
       powerHp: parsed.powerHp ?? null,
+      color: parsed.color ?? null,
       shortDescription: parsed.shortDescription ?? null,
       originalListingUrl: parsed.originalListingUrl ?? null,
       thumbnailUrl: parsed.thumbnailUrl ?? null,
@@ -301,6 +304,7 @@ export async function updateVehicleAction(
           driveType: parsed.driveType ?? null,
           engineVolumeCc: parsed.engineVolumeCc ?? null,
           powerHp: parsed.powerHp ?? null,
+          color: parsed.color ?? null,
           shortDescription: parsed.shortDescription ?? null,
           originalListingUrl: parsed.originalListingUrl ?? null,
           thumbnailUrl: parsed.thumbnailUrl ?? null,
@@ -395,4 +399,5 @@ export async function deleteVehicleAction(formData: FormData) {
   revalidatePath("/catalog");
   revalidatePath("/admin");
   revalidatePath(`/catalog/${existing.slug}`);
+  redirect("/admin/vehicles");
 }

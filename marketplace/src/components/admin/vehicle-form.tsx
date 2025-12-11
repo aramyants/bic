@@ -7,8 +7,12 @@ import {
   BODY_TYPES,
   BODY_TYPE_LABELS,
   COUNTRIES,
+  COLORS,
+  COLOR_LABELS,
   FUEL_TYPES,
   FUEL_TYPE_LABELS,
+  DRIVE_TYPES,
+  DRIVE_TYPE_LABELS,
   TRANSMISSIONS,
   TRANSMISSION_LABELS,
 } from "@/lib/constants";
@@ -24,6 +28,15 @@ interface VehicleFormProps {
   action: VehicleFormAction;
   defaultValues?: Partial<Record<string, string | number | undefined>>;
   submitLabel?: string;
+  taxonomies?: {
+    brand?: string[];
+    model?: string[];
+    bodyType?: string[];
+    fuelType?: string[];
+    transmission?: string[];
+    driveType?: string[];
+    color?: string[];
+  };
 }
 
 type SelectOption = string | { value: string; label: string };
@@ -33,7 +46,7 @@ const INITIAL_STATE: VehicleActionState = { status: "idle" };
 const DEFAULT_SUCCESS_MESSAGE = "Автомобиль сохранён.";
 const DEFAULT_ERROR_MESSAGE = "Не удалось сохранить. Проверьте поля и попробуйте снова.";
 
-export function VehicleForm({ action, defaultValues = {}, submitLabel = "Save" }: VehicleFormProps) {
+export function VehicleForm({ action, defaultValues = {}, submitLabel = "Save", taxonomies }: VehicleFormProps) {
   const [state, formAction] = useActionState(action, INITIAL_STATE);
   const messageRef = useRef<HTMLDivElement | null>(null);
   const initialMediaState = buildInitialMediaState(defaultValues.gallery, defaultValues.thumbnailUrl);
@@ -66,12 +79,27 @@ export function VehicleForm({ action, defaultValues = {}, submitLabel = "Save" }
 
       <div className="grid gap-4 md:grid-cols-2">
         <Field label="Название в каталоге" name="title" defaultValue={defaultValues.title} required />
-        <Field label="Бренд" name="brand" defaultValue={defaultValues.brand} required />
-        <Field label="Модель" name="model" defaultValue={defaultValues.model} required />
+        <DatalistField
+          label="Бренд"
+          name="brand"
+          defaultValue={defaultValues.brand}
+          options={taxonomies?.brand}
+          required
+        />
+        <DatalistField
+          label="Модель"
+          name="model"
+          defaultValue={defaultValues.model}
+          options={taxonomies?.model}
+          required
+        />
         <SelectField
           label="Тип кузова"
           name="bodyType"
-          options={BODY_TYPES.map((type) => ({ value: type, label: BODY_TYPE_LABELS[type] }))}
+          options={(taxonomies?.bodyType?.length ? taxonomies.bodyType : BODY_TYPES).map((type) => ({
+            value: type,
+            label: BODY_TYPE_LABELS[type as keyof typeof BODY_TYPE_LABELS] ?? type,
+          }))}
           defaultValue={defaultValues.bodyType as string}
         />
         <Field label="Год" name="year" type="number" defaultValue={defaultValues.year} required />
@@ -94,16 +122,30 @@ export function VehicleForm({ action, defaultValues = {}, submitLabel = "Save" }
         <SelectField
           label="Тип топлива"
           name="fuelType"
-          options={FUEL_TYPES.map((fuel) => ({ value: fuel, label: FUEL_TYPE_LABELS[fuel] }))}
+          options={(taxonomies?.fuelType?.length ? taxonomies.fuelType : FUEL_TYPES).map((fuel) => ({
+            value: fuel,
+            label: FUEL_TYPE_LABELS[fuel as keyof typeof FUEL_TYPE_LABELS] ?? fuel,
+          }))}
           defaultValue={defaultValues.fuelType as string}
         />
         <SelectField
           label="Коробка передач"
           name="transmission"
-          options={TRANSMISSIONS.map((transmission) => ({ value: transmission, label: TRANSMISSION_LABELS[transmission] }))}
+          options={(taxonomies?.transmission?.length ? taxonomies.transmission : TRANSMISSIONS).map((transmission) => ({
+            value: transmission,
+            label: TRANSMISSION_LABELS[transmission as keyof typeof TRANSMISSION_LABELS] ?? transmission,
+          }))}
           defaultValue={defaultValues.transmission as string}
         />
-        <Field label="Привод" name="driveType" defaultValue={defaultValues.driveType} />
+        <SelectField
+          label="Привод"
+          name="driveType"
+          options={(taxonomies?.driveType?.length ? taxonomies.driveType : DRIVE_TYPES).map((drive) => ({
+            value: drive,
+            label: DRIVE_TYPE_LABELS[drive as keyof typeof DRIVE_TYPE_LABELS] ?? drive,
+          }))}
+          defaultValue={defaultValues.driveType as string}
+        />
         <Field
           label="Объём двигателя (см³)"
           name="engineVolumeCc"
@@ -111,6 +153,15 @@ export function VehicleForm({ action, defaultValues = {}, submitLabel = "Save" }
           defaultValue={defaultValues.engineVolumeCc}
         />
         <Field label="Мощность, л.с." name="powerHp" type="number" defaultValue={defaultValues.powerHp} />
+        <SelectField
+          label="Цвет"
+          name="color"
+          options={(taxonomies?.color?.length ? taxonomies.color : COLORS).map((color) => ({
+            value: color,
+            label: COLOR_LABELS[color as keyof typeof COLOR_LABELS] ?? color,
+          }))}
+          defaultValue={defaultValues.color as string}
+        />
       </div>
 
       <TextareaField
@@ -242,17 +293,18 @@ function TextareaField({
   );
 }
 
+
 function SelectField({ label, name, options, defaultValue }: { label: string; name: string; options: SelectOption[]; defaultValue?: string }) {
   return (
     <label className="space-y-2 text-sm text-white/70">
-      <span className="block text-xs text-white/50">{label}</span>
+      <span className="block text-xs uppercase tracking-[0.16em] text-white/50">{label}</span>
       <select
         name={name}
         defaultValue={defaultValue ?? ""}
         className="h-11 w-full rounded-full border border-white/15 bg-black/30 px-4 text-sm text-white focus:border-brand-primary focus:outline-none"
       >
         <option value="" className="bg-black">
-          — Select —
+          Select
         </option>
         {options.map((option) => {
           const normalized = typeof option === "string" ? { value: option, label: option } : option;
@@ -263,6 +315,41 @@ function SelectField({ label, name, options, defaultValue }: { label: string; na
           );
         })}
       </select>
+    </label>
+  );
+}
+
+function DatalistField({
+  label,
+  name,
+  required,
+  defaultValue,
+  options,
+}: {
+  label: string;
+  name: string;
+  required?: boolean;
+  defaultValue?: string | number;
+  options?: string[];
+}) {
+  const listId = `${name}-list`;
+  return (
+    <label className="space-y-2 text-sm text-white/70">
+      <span className="block text-xs uppercase tracking-[0.16em] text-white/50">{label}</span>
+      <input
+        name={name}
+        list={options && options.length ? listId : undefined}
+        required={required}
+        defaultValue={defaultValue}
+        className="h-11 w-full rounded-full border border-white/15 bg-black/30 px-4 text-sm text-white placeholder:text-white/35 focus:border-brand-primary focus:outline-none"
+      />
+      {options && options.length ? (
+        <datalist id={listId}>
+          {options.map((opt) => (
+            <option key={opt} value={opt} />
+          ))}
+        </datalist>
+      ) : null}
     </label>
   );
 }

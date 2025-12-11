@@ -4,7 +4,7 @@ import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/db/client";
 import { exchangeRates } from "@/db/schema";
 
-const TTL_HOURS = 6;
+const TTL_HOURS = 4;
 
 export async function getEurRubRate(): Promise<number> {
   const existing = await db

@@ -1,0 +1,1845 @@
+### Configure Turborepo Build and Start Commands
+
+Source: https://docs.dokploy.com/docs/core/turborepo
+
+Set environment variables to configure Turborepo's build and start commands for Nixpacks. This ensures the correct packages are built and started within the application.
+
+```bash
+NIXPACKS_TURBO_APP_NAME="web"
+NIXPACKS_BUILD_CMD="turbo run build --filter=web"
+NIXPACKS_START_CMD="turbo run start --filter=web"
+```
+
+--------------------------------
+
+### Install Dokploy using Curl Command
+
+Source: https://docs.dokploy.com/docs/core/installation
+
+This command downloads and executes the Dokploy installation script from the official source. Ensure you have curl installed on your server. The script will automatically install Docker if it's not already present and set up Dokploy.
+
+```bash
+curl -sSL https://dokploy.com/install.sh | sh
+
+```
+
+--------------------------------
+
+### Example MySQL External Connection URL
+
+Source: https://docs.dokploy.com/docs/core/databases/connection/mysql
+
+This is an example of the external connection URL format provided by Dokploy for MySQL databases. This URL contains the necessary credentials and host information for external tools like Beekeeper Studio to connect.
+
+```text
+mysql://user:password@1.2.4.5:3306/database
+```
+
+--------------------------------
+
+### Dockerfile for Node.js Application
+
+Source: https://docs.dokploy.com/docs/core/applications/going-production
+
+This Dockerfile defines a multi-stage build process for a Node.js application. It starts with a base image, installs dependencies using pnpm, builds the application, and then copies only the necessary production artifacts to a final stage for deployment. It exposes port 3000 and sets the command to start the application.
+
+```dockerfile
+FROM node:18-alpine AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+RUN corepack enable
+
+FROM base AS build
+WORKDIR /app
+COPY . .
+COPY package.json pnpm-lock.yaml ./
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+ENV NODE_ENV=production
+RUN pnpm run build
+
+FROM base AS dokploy
+WORKDIR /app
+ENV NODE_ENV=production
+
+# Copy only the necessary files
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/package.json ./package.json
+COPY --from=build /app/node_modules ./node_modules
+
+EXPOSE 3000
+CMD ["pnpm", "start"]
+```
+
+--------------------------------
+
+### Install Dokploy and Dependencies using Bash
+
+Source: https://docs.dokploy.com/docs/core/manual-installation
+
+This Bash script installs Dokploy on a Linux server. It first checks for prerequisites like root access and available ports. Then, it ensures Docker is installed, initializes a Docker Swarm, and creates necessary Docker networks and volumes. Finally, it deploys Dokploy, PostgreSQL, Redis, and Traefik as Docker services.
+
+```bash
+#!/bin/bash
+install_dokploy() {
+    if [ "$(id -u)" != "0" ]; then
+        echo "This script must be run as root" >&2
+        exit 1
+    fi
+ 
+    # check if is Mac OS
+    if [ "$(uname)" = "Darwin" ]; then
+        echo "This script must be run on Linux" >&2
+        exit 1
+    fi
+ 
+    # check if is running inside a container
+    if [ -f /.dockerenv ]; then
+        echo "This script must be run on Linux" >&2
+        exit 1
+    fi
+ 
+    # check if something is running on port 80
+    if ss -tulnp | grep ':80 ' >/dev/null;
+ then
+        echo "Error: something is already running on port 80" >&2
+        exit 1
+    fi
+ 
+    # check if something is running on port 443
+    if ss -tulnp | grep ':443 ' >/dev/null;
+ then
+        echo "Error: something is already running on port 443" >&2
+        exit 1
+    fi
+ 
+    # check if something is running on port 3000
+    if ss -tulnp | grep ':3000 ' >/dev/null;
+ then
+        echo "Error: something is already running on port 3000" >&2
+        echo "Dokploy requires port 3000 to be available. Please stop any service using this port." >&2
+        exit 1
+    fi
+ 
+    command_exists() {
+      command -v "$@" > /dev/null 2>&1
+    }
+ 
+    if command_exists docker;
+ then
+      echo "Docker already installed"
+    else
+      curl -sSL https://get.docker.com | sh
+    fi
+ 
+    docker swarm leave --force 2>/dev/null
+ 
+    get_ip() {
+        local ip=""
+        
+        # Try IPv4 first
+        # First attempt: ifconfig.io
+        ip=$(curl -4s --connect-timeout 5 https://ifconfig.io 2>/dev/null)
+        
+        # Second attempt: icanhazip.com
+        if [ -z "$ip" ]; then
+            ip=$(curl -4s --connect-timeout 5 https://icanhazip.com 2>/dev/null)
+        fi
+        
+        # Third attempt: ipecho.net
+        if [ -z "$ip" ]; then
+            ip=$(curl -4s --connect-timeout 5 https://ipecho.net/plain 2>/dev/null)
+        fi
+ 
+        # If no IPv4, try IPv6
+        if [ -z "$ip" ]; then
+            # Try IPv6 with ifconfig.io
+            ip=$(curl -6s --connect-timeout 5 https://ifconfig.io 2>/dev/null)
+            
+            # Try IPv6 with icanhazip.com
+            if [ -z "$ip" ]; then
+                ip=$(curl -6s --connect-timeout 5 https://icanhazip.com 2>/dev/null)
+            fi
+            
+            # Try IPv6 with ipecho.net
+            if [ -z "$ip" ]; then
+                ip=$(curl -6s --connect-timeout 5 https://ipecho.net/plain 2>/dev/null)
+            fi
+        fi
+ 
+        if [ -z "$ip" ]; then
+            echo "Error: Could not determine server IP address automatically (neither IPv4 nor IPv6)." >&2
+            echo "Please set the ADVERTISE_ADDR environment variable manually." >&2
+            echo "Example: export ADVERTISE_ADDR=<your-server-ip>" >&2
+            exit 1
+        fi
+ 
+        echo "$ip"
+    }
+ 
+    advertise_addr="${ADVERTISE_ADDR:-$(get_ip)}"
+    echo "Using advertise address: $advertise_addr"
+ 
+    docker swarm init --advertise-addr $advertise_addr
+    
+     if [ $? -ne 0 ]; then
+        echo "Error: Failed to initialize Docker Swarm" >&2
+        exit 1
+    fi
+ 
+    echo "Swarm initialized"
+ 
+    docker network rm -f dokploy-network 2>/dev/null
+    docker network create --driver overlay --attachable dokploy-network
+ 
+    echo "Network created"
+ 
+    mkdir -p /etc/dokploy
+ 
+    chmod 777 /etc/dokploy
+ 
+    docker service create \
+    --name dokploy-postgres \
+    --constraint 'node.role==manager' \
+    --network dokploy-network \
+    --env POSTGRES_USER=dokploy \
+    --env POSTGRES_DB=dokploy \
+    --env POSTGRES_PASSWORD=amukds4wi9001583845717ad2 \
+    --mount type=volume,source=dokploy-postgres,target=/var/lib/postgresql/data \
+    postgres:16
+ 
+    docker service create \
+    --name dokploy-redis \
+    --constraint 'node.role==manager' \
+    --network dokploy-network \
+    --mount type=volume,source=dokploy-redis,target=/data \
+    redis:7
+ 
+    docker pull traefik:v3.6.1
+    docker pull dokploy/dokploy:latest
+ 
+    # Installation
+    docker service create \
+      --name dokploy \
+      --replicas 1 \
+      --network dokploy-network \
+      --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
+      --mount type=bind,source=/etc/dokploy,target=/etc/dokploy \
+      --mount type=volume,source=dokploy,target=/root/.docker \
+      --publish published=3000,target=3000,mode=host \
+      --update-parallelism 1 \
+      --update-order stop-first \
+      --constraint 'node.role == manager' \
+      -e ADVERTISE_ADDR=$advertise_addr \
+      dokploy/dokploy:latest
+ 
+ 
+    docker run -d \
+        --name dokploy-traefik \
+        --restart always \
+        -v /etc/dokploy/traefik/traefik.yml:/etc/traefik/traefik.yml \
+        -v /etc/dokploy/traefik/dynamic:/etc/dokploy/traefik/dynamic \
+        traefik:v3.6.1 --api.insecure=true --providers.docker=true --providers.docker.exposedbydefault=false
+}
+
+```
+
+--------------------------------
+
+### Basic Docker Compose Configuration
+
+Source: https://docs.dokploy.com/docs/core/docker-compose/example
+
+An example of a basic Docker Compose file configuration for a service, including build context, restart policy, ports, and external networks.
+
+```yaml
+version: "3"
+ 
+services:
+  next-app:
+    build:
+      context: ./next-app
+      dockerfile: prod.Dockerfile
+      args:
+        ENV_VARIABLE: ${ENV_VARIABLE}
+        NEXT_PUBLIC_ENV_VARIABLE: ${NEXT_PUBLIC_ENV_VARIABLE}
+    restart: always
+    ports:
+      - 3000:3000
+    networks:
+      - my_network
+networks:
+  my_network:
+    external: true
+```
+
+--------------------------------
+
+### Incorrect Docker Compose Volume Mounting Examples
+
+Source: https://docs.dokploy.com/docs/core/troubleshooting
+
+Illustrates incorrect methods for mounting volumes in Docker Compose, which can lead to issues with Docker Swarm and Dokploy deployments. These examples show direct repository mounting that fails on subsequent deployments.
+
+```yaml
+volumes:
+    - "/folder:/path/in/container" ❌
+```
+
+```yaml
+volumes:
+  - "./:/mnt/extra-addons/va_subscription_18" ❌
+  - "./docker/config/odoo.conf:/etc/odoo/odoo.conf" ❌
+```
+
+--------------------------------
+
+### Example Docker Compose Service (WordPress)
+
+Source: https://docs.dokploy.com/docs/core/docker-compose/utilities
+
+A typical Docker Compose service definition for WordPress. This serves as an example to illustrate potential naming conflicts in shared networks, which Dokploy's isolated deployments feature addresses.
+
+```yaml
+services:
+  wordpress:
+    image: wordpress:latest
+    ports:
+      - "80"
+```
+
+--------------------------------
+
+### Referencing File Mounts in Docker Compose
+
+Source: https://docs.dokploy.com/docs/core/troubleshooting
+
+This example shows how to reference a configuration file created using Dokploy's File Mounts within a `docker-compose.yml` file. The file is placed in the `/files` directory by Dokploy and then mapped to the desired path within the container.
+
+```yaml
+volumes:
+  - ../files/my-config.json:/etc/my-app/config
+```
+
+--------------------------------
+
+### Bash Script for Dokploy Installation and Update
+
+Source: https://docs.dokploy.com/docs/core/manual-installation
+
+This Bash script handles the installation and update of Dokploy. It includes functions for installing Dokploy, updating its Docker image and service, and managing colors for output. It also checks for the 'update' argument to perform an update instead of an installation.
+
+```bash
+GREEN="\033[0;32m"
+YELLOW="\033[1;33m"
+BLUE="\033[0;34m"
+NC="\033[0m" # No Color
+
+format_ip_for_url() {
+    local ip="$1"
+    if echo "$ip" | grep -q ':'; then
+        # IPv6
+        echo "[${ip}]"
+    else
+        # IPv4
+        echo "${ip}"
+    fi
+}
+
+install_dokploy() {
+    # ... installation logic ...
+    advertise_addr=$(curl -s ifconfig.me)
+    formatted_addr=$(format_ip_for_url "$advertise_addr")
+    echo ""
+    printf "${GREEN}Congratulations, Dokploy is installed!${NC}\n"
+    printf "${BLUE}Wait 15 seconds for the server to start${NC}\n"
+    printf "${YELLOW}Please go to http://${formatted_addr}:3000${NC}\n\n"
+}
+
+update_dokploy() {
+    echo "Updating Dokploy..."
+
+    # Pull the latest image
+    docker pull dokploy/dokploy:latest
+
+    # Update the service
+    docker service update --image dokploy/dokploy:latest dokploy
+
+    echo "Dokploy has been updated to the latest version."
+}
+
+# Main script execution
+if [ "$1" = "update" ]; then
+    update_dokploy
+else
+    install_dokploy
+fi
+```
+
+--------------------------------
+
+### Manual Upgrade of Dokploy via Script
+
+Source: https://docs.dokploy.com/docs/core/manual-installation
+
+This command demonstrates how to manually upgrade Dokploy by fetching the latest installation script and executing it with the 'update' argument. This ensures Dokploy is updated to the most recent version available.
+
+```bash
+curl -sSL https://dokploy.com/install.sh | sh -s update
+```
+
+--------------------------------
+
+### Basic Docker Compose Setup
+
+Source: https://docs.dokploy.com/docs/core/docker-compose/domains
+
+A foundational Docker Compose file for a multi-component application (frontend, backend, database). It defines services, builds, volumes, ports, environment variables, and dependencies.
+
+```yaml
+version: "3.8"
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend:/app
+    ports:
+      - "5000:5000"
+    environment:
+      - DATABASE_URL=postgres://postgres:password@database:5432/mydatabase
+    depends_on:
+      - database
+
+  database:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: mydatabase
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+volumes:
+  db-data:
+
+```
+
+--------------------------------
+
+### Docker Compose: Volume Mount Configuration
+
+Source: https://docs.dokploy.com/docs/core/troubleshooting
+
+Docker Compose allows you to define volume mounts in your `docker-compose.yml` file. This example shows how to mount a named volume `my-database` to the `/var/lib/mysql` directory within the container, typically used for persistent database storage.
+
+```yaml
+volumes:
+  - my-database:/var/lib/mysql
+```
+
+--------------------------------
+
+### Dokploy Domain Configuration for Services
+
+Source: https://docs.dokploy.com/docs/core/troubleshooting
+
+When setting up a domain for a service within Dokploy, you need to specify the service name and the port it's running on. This allows Dokploy to correctly route traffic to your application.
+
+```yaml
+domain: my-app.com
+serviceName: app
+port: 3000
+```
+
+--------------------------------
+
+### Fix Dokploy Database Connection Error
+
+Source: https://docs.dokploy.com/docs/core/troubleshooting
+
+Resolves a common 'ENOTFOUND' error when Dokploy cannot connect to its Postgres database, typically occurring if Postgres starts after Dokploy. This involves scaling down and then scaling up the Dokploy service to re-establish the connection.
+
+```bash
+docker service scale dokploy=0
+# Then
+docker service scale dokploy=1
+```
+
+--------------------------------
+
+### Initializing Docker Swarm with Advertise Address
+
+Source: https://docs.dokploy.com/docs/core/troubleshooting
+
+This command initializes a Docker Swarm, specifying the IP address to advertise. This is crucial when the Docker daemon cannot automatically determine a suitable address, often requiring a public or private IP.
+
+```bash
+curl -sSL https://dokploy.com/install.sh | ADVERTISE_ADDR=your-ip sh
+```
+
+--------------------------------
+
+### Verifying Running Dokploy Containers
+
+Source: https://docs.dokploy.com/docs/core/troubleshooting
+
+This command lists all currently running Docker containers. It is used to verify that the essential Dokploy containers (UI, Postgres, Redis, Traefik) are active, which is a troubleshooting step for UI inaccessibility.
+
+```bash
+docker ps
+```
+
+--------------------------------
+
+### Recreate Dokploy Traefik Service (Swarm)
+
+Source: https://docs.dokploy.com/docs/core/troubleshooting
+
+Demonstrates the command to remove and recreate the Dokploy Traefik service within a Docker Swarm environment. This is used to reset the Traefik service in a clustered setup.
+
+```bash
+# If you are using docker service traefik
+docker service rm dokploy-traefik
+```
+
+--------------------------------
+
+### MariaDB Default Backup Command
+
+Source: https://docs.dokploy.com/docs/core/databases/restore
+
+Dokploy's default command for creating MariaDB backups is shown here. It uses mariadb-dump to specify user, password, and database options, then compresses the dump using gzip.
+
+```shell
+mariadb-dump --user='${databaseUser}' --password='${databasePassword}' --databases ${database} | gzip
+```
+
+--------------------------------
+
+### Recreate Dokploy Postgres Service
+
+Source: https://docs.dokploy.com/docs/core/troubleshooting
+
+Provides instructions for removing and recreating the Dokploy Postgres database service. This includes specifying environment variables for user, database, and password, along with volume mounting for data persistence.
+
+```bash
+docker service rm dokploy-postgres
+
+# Create a new dokploy-postgres service
+docker service create \
+  --name dokploy-postgres \
+  --constraint 'node.role==manager' \
+  --network dokploy-network \
+  --env POSTGRES_USER=dokploy \
+  --env POSTGRES_DB=dokploy \
+  --env POSTGRES_PASSWORD=amukds4wi9001583845717ad2 \
+  --mount type=volume,source=dokploy-postgres,target=/var/lib/postgresql/data \
+  postgres:16
+```
+
+--------------------------------
+
+### Get Server Private IP for ADVERTISE_ADDR
+
+Source: https://docs.dokploy.com/docs/core/troubleshooting
+
+This command helps retrieve the private IP address of your server, which is needed for the ADVERTISE_ADDR environment variable when creating the Dokploy service. It filters for local IP addresses (192.168.x.x, 10.x.x.x, etc.) and extracts the first one found.
+
+```bash
+ip addr show | grep -E "inet (192\.168\.|10\.|172\.1[6-9]\.|172\.2[0-9]\.|172\.3[0-1]\.)" | head -n1 | awk '{print $2}' | cut -d/ -f1
+```
+
+--------------------------------
+
+### Correct Docker Compose Volume Mounting
+
+Source: https://docs.dokploy.com/docs/core/troubleshooting
+
+Demonstrates the correct way to mount volumes in Docker Compose using Dokploy's file mounts, referencing files from the `/files` directory. It highlights common mistakes and provides valid alternatives.
+
+```yaml
+volumes:
+    - "../files/my-database:/var/lib/mysql" ✅
+    - "../files/my-configs:/etc/my-app/config" ✅
+```
+
+```yaml
+volumes:
+    - "../files/va_subscription_18:/mnt/extra-addons/va_subscription_18" ✅
+    - "../files/odoo.conf:/etc/odoo/odoo.conf" ✅
+```
+
+--------------------------------
+
+### Expected Dokploy Container Status
+
+Source: https://docs.dokploy.com/docs/core/troubleshooting
+
+This output represents the expected running containers for a Dokploy instance. It includes the Dokploy UI, PostgreSQL, Redis, and Traefik, each with specific image IDs, commands, ports, and names.
+
+```text
+2a5b955c32b6   dokploy/dokploy:latest      "docker-entrypoint.s…"   4 days ago     Up 4 days     0.0.0.0:3000->3000/tcp, :::3000->3000/tcp                                                                             dokploy.1.4bkuszk98muz372kw5mvwkw0h
+5a989bf52bc6   postgres:16                 "docker-entrypoint.s…"   4 days ago     Up 4 days     5432/tcp                                                                                                              dokploy-postgres.1.9hvjaxrmby7ex2denjtwo0csf
+a29d56342175   redis:7                     "docker-entrypoint.s…"   4 days ago     Up 4 days     6379/tcp                                                                                                              dokploy-redis.1.epl51a9bt8yr7ur0f1akeeyuk
+05be01c5612f   traefik:v2.5                "/entrypoint.sh trae…"   4 days ago     Up 4 days     0.0.0.0:80->80/tcp, :::80->80/tcp, 0.0.0.0:443->443/tcp, :::443->443/tcp, 0.0.0.0:8080->8080/tcp, :::8080->8080/tcp   dokploy-traefik.1.2oktabjmfu558x2d2dy6czt8m
+```
+
+--------------------------------
+
+### Recreate Dokploy Traefik Service (Standalone)
+
+Source: https://docs.dokploy.com/docs/core/troubleshooting
+
+Shows how to remove and run a new Traefik container using `docker run` for standalone deployments. This is typically done when Traefik configuration needs to be reset or the container is in a bad state.
+
+```bash
+# If you are using docker standalone traefik
+docker rm -f dokploy-traefik
+
+docker run -d \
+    --name dokploy-traefik \
+    --restart always \
+    -v /etc/dokploy/traefik/traefik.yml:/etc/traefik/traefik.yml \
+    -v /etc/dokploy/traefik/dynamic:/etc/dokploy/traefik/dynamic \
+    -v /var/run/docker.sock:/var/run/docker.sock:ro \
+    -p 80:80/tcp \
+    -p 443:443/tcp \
+    -p 443:443/udp \
+    traefik:v3.6.1
+
+docker network connect dokploy-network dokploy-traefik
+```
+
+--------------------------------
+
+### Check Dokploy Container Logs
+
+Source: https://docs.dokploy.com/docs/core/troubleshooting
+
+Examine the logs of individual Dokploy containers to diagnose issues. This command retrieves logs for the Dokploy UI, Postgres database, Redis cache, and Traefik reverse proxy.
+
+```bash
+docker service logs dokploy # Dokploy UI
+docker service logs dokploy-postgres # Postgres
+docker service logs dokploy-redis # Redis
+docker logs dokploy-traefik # Traefik
+```
+
+--------------------------------
+
+### Create Dokploy Service with Docker
+
+Source: https://docs.dokploy.com/docs/core/troubleshooting
+
+This command creates the main Dokploy service. It requires specifying an advertise address (the private IP of your server) for proper network communication. The command also mounts the Docker socket, a local configuration directory, and a Docker volume for persistent data. Ensure 'dokploy-network' exists.
+
+```bash
+docker service create \
+  --name dokploy \
+  --replicas 1 \
+  --network dokploy-network \
+  --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
+  --mount type=bind,source=/etc/dokploy,target=/etc/dokploy \
+  --mount type=volume,source=dokploy,target=/root/.docker \
+  --publish published=3000,target=3000,mode=host \
+  --update-parallelism 1 \
+  --update-order stop-first \
+  --constraint 'node.role == manager' \
+  -e ADVERTISE_ADDR="Eg: 192.168.1.100" \
+  dokploy/dokploy:latest
+```
+
+--------------------------------
+
+### Recreate Dokploy Redis Service
+
+Source: https://docs.dokploy.com/docs/core/troubleshooting
+
+Demonstrates how to remove and recreate the Dokploy Redis service using Docker Swarm commands. This is useful for resetting the Redis data or resolving persistent issues with the Redis container.
+
+```bash
+docker service rm dokploy-redis
+
+# Create a new dokploy-redis service
+docker service create \
+  --name dokploy-redis \
+  --constraint 'node.role==manager' \
+  --network dokploy-network \
+  --mount type=volume,source=dokploy-redis,target=/data \
+  redis:7
+```
+
+--------------------------------
+
+### Bash Script for Custom Database Backup (Server Jobs)
+
+Source: https://docs.dokploy.com/docs/core/schedule-jobs
+
+A bash script for performing custom database backups, demonstrated with a ClickHouse example. It generates a timestamped backup file and executes a backup command within a specified container. The script includes placeholders for uploading backups to S3.
+
+```bash
+#!/bin/bash
+# Backup script for custom database
+backup_date=$(date +%Y%m%d_%H%M%S)
+backup_file="database_${backup_date}.backup"
+
+# search the container name
+container_name=$(docker ps --filter "name=clickhouse" --format "{{.Names}}")
+
+# Add your backup commands here
+docker exec -it $container_name clickhouse-client --query "BACKUP DATABASE mydb TO '/backups/$backup_file'"
+
+# Upload to S3 (if needed)
+# aws s3 cp /backups/$backup_file s3://your-bucket/backups/
+```
+
+--------------------------------
+
+### Docker Compose with Dokploy Network
+
+Source: https://docs.dokploy.com/docs/core/docker-compose/domains
+
+Extends a Docker Compose setup by adding services to the 'dokploy-network'. This is a prerequisite for network-level configurations like domain routing.
+
+```yaml
+version: "3.8"
+
+services:
+  frontend:
+    # ... (previous configuration)
+    networks:
+      - dokploy-network
+
+  backend:
+    # ... (previous configuration)
+    networks:
+      - dokploy-network
+
+  database:
+    # ... (previous configuration)
+    networks:
+      - dokploy-network
+
+volumes:
+  db-data:
+
+networks:
+  dokploy-network:
+    external: true
+
+```
+
+--------------------------------
+
+### Disable IP:Port Access for Dokploy
+
+Source: https://docs.dokploy.com/docs/core/installation
+
+This command updates the Dokploy Docker service to remove the published port, disabling access via the server's IP address and port. This is a recommended security measure after configuring a domain with HTTPS. Ensure your domain is accessible before running this command to avoid losing access.
+
+```bash
+docker service update --publish-rm "published=3000,target=3000,mode=host" dokploy
+
+```
+
+--------------------------------
+
+### Define Project-Level Environment Variable (Bash)
+
+Source: https://docs.dokploy.com/docs/core/variables
+
+Declare a shared environment variable at the project level. This variable is accessible by all services within the project. Example shows setting a DATABASE_URL for a PostgreSQL database.
+
+```bash
+DATABASE_URL=postgresql://postgres:postgres@database:5432/postgres
+```
+
+--------------------------------
+
+### Astro SSR Deployment Configuration
+
+Source: https://docs.dokploy.com/docs/core/astro-ssr
+
+Configuration details for deploying an Astro SSR application via Dokploy. This involves specifying the Git repository, branch, build path, and setting environment variables for the build process.
+
+```text
+NIXPACKS_START_CMD="pnpm run preview"
+```
+
+--------------------------------
+
+### MySQL Default Backup Command
+
+Source: https://docs.dokploy.com/docs/core/databases/restore
+
+This command represents the default method Dokploy employs for backing up MySQL databases. It uses mysqldump with specific character set and transaction settings, excludes tablespaces, and compresses the output.
+
+```shell
+mysqldump --default-character-set=utf8mb4 -u 'root' --password='${databaseRootPassword}' --single-transaction --no-tablespaces --quick '${database}' | gzip
+```
+
+--------------------------------
+
+### N8N Docker Compose Configuration with Volume
+
+Source: https://docs.dokploy.com/docs/core/volume-backups
+
+A practical example using N8N, which stores its data in a Docker volume named 'n8n_data'. This configuration demonstrates how to set up N8N with a persistent volume suitable for backup using Dokploy.
+
+```yaml
+version: "3.8"
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:1.83.2
+    restart: always
+    environment:
+      - N8N_HOST=${N8N_HOST}
+      - N8N_PORT=${N8N_PORT}
+      - N8N_PROTOCOL=http
+      - NODE_ENV=production
+      - WEBHOOK_URL=https://${N8N_HOST}/
+      - GENERIC_TIMEZONE=${GENERIC_TIMEZONE}
+      - N8N_SECURE_COOKIE=false
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+volumes:
+  n8n_data:
+```
+
+--------------------------------
+
+### Create Dokploy Traefik Service with Docker
+
+Source: https://docs.dokploy.com/docs/core/troubleshooting
+
+This command creates a new Docker service for Traefik, a popular reverse proxy and load balancer. It configures Traefik to listen on ports 80 and 443, and mounts configuration files and the Docker socket for dynamic configuration. Ensure that the 'dokploy-network' is pre-existing.
+
+```bash
+docker service create \
+  --name dokploy-traefik \
+  --constraint 'node.role==manager' \
+  --network dokploy-network \
+  --mount type=bind,source=/etc/dokploy/traefik/traefik.yml,target=/etc/traefik/traefik.yml \
+  --mount type=bind,source=/etc/dokploy/traefik/dynamic,target=/etc/dokploy/traefik/dynamic \
+  --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
+  --publish mode=host,published=443,target=443 \
+  --publish mode=host,published=80,target=80 \
+  --publish mode=host,published=443,target=443,protocol=udp \
+  traefik:v3.6.1
+```
+
+--------------------------------
+
+### Remove Dokploy Docker Service
+
+Source: https://docs.dokploy.com/docs/core/troubleshooting
+
+This command removes the 'dokploy' Docker service. This is typically used for uninstallation or resetting the service. Ensure you have backed up any necessary data before executing this command.
+
+```bash
+docker service rm dokploy
+```
+
+--------------------------------
+
+### Correct Traefik Configuration for Missing Field
+
+Source: https://docs.dokploy.com/docs/core/troubleshooting
+
+Illustrates how to fix Traefik configuration errors, specifically when a required field like 'passHostHeader' is missing. This involves modifying the dynamic configuration file and restarting Traefik.
+
+```yaml
+http:
+  routers:
+    dokploy-router-app:
+      rule: Host(`my-domain.com`)
+      service: dokploy-service-app
+      entryPoints:
+        - web
+      middlewares:
+        - redirect-to-https
+    dokploy-router-app-secure:
+      rule: Host(`my-domain.com`)
+      service: dokploy-service-app
+      entryPoints:
+        - websecure
+      tls:
+        certResolver: letsencrypt
+  services:
+    dokploy-service-app:
+      loadBalancer:
+        servers:
+          - url: http://dokploy:3000
+        passHostHeader: true
+```
+
+--------------------------------
+
+### Traefik Network Errors During Restart (Logs)
+
+Source: https://docs.dokploy.com/docs/core/troubleshooting
+
+These log entries indicate that Traefik is temporarily closing network connections as part of its normal restart process. This is expected behavior and not an error that requires intervention.
+
+```log
+05/23/25, 12:21:12 PM info 2025-05-23T09:21:12Z ERR: error="accept tcp [::]:443: use of closed network connection" entryPointName=websecure
+05/23/25, 12:21:12 PM info 2025-05-23T09:21:12Z ERR: error="accept tcp [::]:9000: use of closed network connection" entryPointName=traefik
+05/23/25, 12:21:12 PM info 2025-05-23T09:21:12Z ERR: error="accept tcp [::]:80: use of closed network connection" entryPointName=web
+05/23/25, 12:21:12 PM info 2025-05-23T09:21:12Z ERR: error="close tcp [::]:9000: use of closed network connection" entryPointName=traefik
+05/23/25, 12:21:12 PM info 2025-05-23T09:21:12Z ERR: error="close tcp [::]:443: use of closed network connection" entryPointName=websecure
+05/23/25, 12:21:12 PM info 2025-05-23T09:21:12Z ERR: error="close tcp [::]:80: use of closed network connection" entryPointName=web
+```
+
+--------------------------------
+
+### Vite Application Network Configuration
+
+Source: https://docs.dokploy.com/docs/core/troubleshooting
+
+Modern JavaScript frameworks like Vite often default to listening only on localhost. To resolve 'Bad Gateway' errors, configure the application to listen on all network interfaces by setting `host: true` for both the `preview` and `server` options in the Vite configuration.
+
+```javascript
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+
+export default defineConfig({
+	plugins: [react()],
+	preview: {
+		port: 3000,
+		host: true,    // This enables listening on all network interfaces
+	},
+	server: {
+		host: true,    // This enables listening on all network interfaces
+		port: 3000
+	}
+});
+```
+
+--------------------------------
+
+### Docker Compose Volume Definition
+
+Source: https://docs.dokploy.com/docs/core/volume-backups
+
+Example of defining volumes within a Docker Compose file. This allows applications to persist data outside the container's lifecycle. The volumes can then be targeted by Dokploy's backup feature.
+
+```yaml
+services:
+  app:
+    image: dokploy/dokploy:latest
+    volumes:
+      - my-volume:/app/data
+
+volumes:
+  my-volume:
+```
+
+--------------------------------
+
+### Restart SSH Service on EC2 Instance (Bash)
+
+Source: https://docs.dokploy.com/docs/core/multi-server/ec2-instructions
+
+Restarts the SSH daemon to apply configuration changes, such as enabling root login. This command is essential after modifying the sshd_config file. It requires administrative privileges.
+
+```bash
+sudo systemctl restart sshd
+```
+
+--------------------------------
+
+### Docker Stack: Port Exposure with 'expose'
+
+Source: https://docs.dokploy.com/docs/core/troubleshooting
+
+For Docker Stack deployments, ports are exposed automatically. Instead of using the 'ports' directive, use the 'expose' directive to specify the ports your service listens on. This prevents unnecessary port mapping.
+
+```yaml
+services:
+  app:
+    image: dokploy/dokploy:latest
+    expose:
+      - 3000
+```
+
+--------------------------------
+
+### MongoDB Default Backup Command
+
+Source: https://docs.dokploy.com/docs/core/databases/restore
+
+This is the default command Dokploy uses to back up MongoDB databases. It leverages mongodump with options for specifying the database, user, password, authentication database, and output format (archive with gzip compression).
+
+```shell
+mongodump -d '${database}' -u '${databaseUser}' -p '${databasePassword}' --archive --authenticationDatabase=admin --gzip
+```
+
+--------------------------------
+
+### Pruning Docker System Resources
+
+Source: https://docs.dokploy.com/docs/core/troubleshooting
+
+These commands are used to free up disk space on a Docker host by removing unused data. They clear stopped containers, unused networks, dangling images, and build cache, which can resolve UI inaccessibility issues caused by insufficient storage.
+
+```bash
+docker system prune -a
+docker builder prune -a
+docker image prune -a
+```
+
+--------------------------------
+
+### Postgres Default Backup Command
+
+Source: https://docs.dokploy.com/docs/core/databases/restore
+
+This is the default command Dokploy uses to generate backups for Postgres databases. It utilizes pg_dump to create a custom-format archive, excludes ACLs and ownership information, and compresses the output using gzip.
+
+```shell
+pg_dump -Fc --no-acl --no-owner -h localhost -U ${databaseUser} --no-password '${database}' | gzip
+```
+
+--------------------------------
+
+### Restart Traefik Service for UI Access Issues
+
+Source: https://docs.dokploy.com/docs/core/troubleshooting
+
+Restarts the Traefik container to resolve issues with accessing the Dokploy UI when all other containers are running and logs show no errors. This is a first step before deep configuration checks.
+
+```bash
+docker restart dokploy-traefik
+```
+
+--------------------------------
+
+### Docker Compose: Correct Domain Port Exposure
+
+Source: https://docs.dokploy.com/docs/core/troubleshooting
+
+When configuring domains in Docker Compose, it is recommended to specify the application's running port directly rather than exposing it. Exposing ports can lead to conflicts. This approach is specific to Docker Compose and not Docker Stack.
+
+```yaml
+services:
+  app:
+    image: dokploy/dokploy:latest
+    ports:
+      - 3000
+      - 80
+```
+
+--------------------------------
+
+### Configure Healthcheck Settings for Dokploy
+
+Source: https://docs.dokploy.com/docs/core/applications/going-production
+
+This JSON object defines healthcheck parameters for a Dokploy deployment. It includes a command to test the application's health endpoint, interval between checks, timeout duration, start period, and the number of retries.
+
+```json
+{
+  "Test": [
+    "CMD",
+    "curl",
+    "-f",
+    "http://localhost:3000/health"
+  ],
+  "Interval": 30000000000,
+  "Timeout": 10000000000,
+  "StartPeriod": 30000000000,
+  "Retries": 3
+}
+```
+
+--------------------------------
+
+### Docker Swarm Health Check Configuration for Rollback
+
+Source: https://docs.dokploy.com/docs/core/applications/rollbacks
+
+This JSON configuration defines parameters for Docker Swarm's health check mechanism. It specifies a command to test application health, intervals between checks, timeouts, start periods, and the number of retries before considering the service unhealthy, which can trigger an automatic rollback.
+
+```json
+{
+  "Test": [
+    "CMD",
+    "curl",
+    "-f",
+    "http://localhost:3000/api/health"
+  ],
+  "Interval": 30000000000,
+  "Timeout": 10000000000,
+  "StartPeriod": 30000000000,
+  "Retries": 3
+}
+```
+
+--------------------------------
+
+### Deploy Qwik App with Git and Environment Variables
+
+Source: https://docs.dokploy.com/docs/core/qwik
+
+This snippet details the configuration required to deploy a Qwik application using Dokploy. It includes setting up the Git repository, specifying the build path, and defining necessary environment variables for the build process.
+
+```bash
+REPOSITORY='https://github.com/Dokploy/examples.git'
+BRANCH='main'
+BUILD_PATH='/qwik'
+NIXPACKS_START_CMD='pnpm run preview'
+```
+
+--------------------------------
+
+### Dokploy Dynamic Domain Generation Pattern
+
+Source: https://docs.dokploy.com/docs/core/applications/preview-deployments
+
+Illustrates the pattern Dokploy uses to generate dynamic domains for preview deployments when custom domains are not explicitly configured. This pattern ensures unique URLs for each preview environment.
+
+```text
+preview-${appName}-${uniqueId}.traefik.me
+```
+
+--------------------------------
+
+### Join Existing Docker Swarm with Dokploy Network
+
+Source: https://docs.dokploy.com/docs/core/manual-installation
+
+This snippet provides commands to integrate Dokploy with an existing Docker Swarm. It involves creating an overlay network, setting up a directory for Dokploy configuration, pulling the Dokploy image, and creating the Dokploy service.
+
+```bash
+docker network create --driver overlay --attachable dokploy-network
+
+mkdir -p /etc/dokploy
+
+chmod -R 777 /etc/dokploy
+
+docker pull dokploy/dokploy:latest
+
+# Installation
+docker service create \
+  --name dokploy \
+  --replicas 1 \
+  --network dokploy-network \
+  --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
+  --mount type=bind,source=/etc/dokploy,target=/etc/dokploy \
+  --publish published=3000,target=3000,mode=host \
+  --update-parallelism 1 \
+  --update-order stop-first \
+  dokploy/dokploy:latest
+```
+
+--------------------------------
+
+### Configure Custom Domains for Preview Deployments
+
+Source: https://docs.dokploy.com/docs/core/applications/preview-deployments
+
+This snippet demonstrates how to configure custom domains for Dokploy preview deployments. By setting a wildcard DNS record to your server's IP address, Dokploy can generate dynamic preview URLs using your custom domain.
+
+```text
+*.mydomain.com
+```
+
+--------------------------------
+
+### Docker Compose with Dokploy and Traefik Configuration
+
+Source: https://docs.dokploy.com/docs/core/docker-compose/example
+
+An updated Docker Compose configuration for Dokploy integration. This includes adding the 'dokploy-network', removing 'container_name', and adding Traefik labels for routing, SSL, and service discovery.
+
+```yaml
+version: "3"
+ 
+services:
+  next-app:
+    build:
+      context: ./next-app
+      dockerfile: prod.Dockerfile
+      args:
+        ENV_VARIABLE: ${ENV_VARIABLE}
+        NEXT_PUBLIC_ENV_VARIABLE: ${NEXT_PUBLIC_ENV_VARIABLE}
+    restart: always
+    ports:
+      - 3000
+    networks:
+      - dokploy-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.<unique-name>.rule=Host(`your-domain.com`)"
+      - "traefik.http.routers.<unique-name>.entrypoints=websecure"
+      - "traefik.http.routers.<unique-name>.tls.certResolver=letsencrypt"
+      - "traefik.http.services.<unique-name>.loadbalancer.server.port=3000"
+networks:
+  dokploy-network:
+    external: true
+```
+
+--------------------------------
+
+### GitHub Actions Workflow to Build and Push Docker Image
+
+Source: https://docs.dokploy.com/docs/core/applications/going-production
+
+This workflow automates the process of checking out a repository, logging into Docker Hub, and building/pushing a Docker image. It requires Docker Hub username and token to be set as repository secrets. The context and Dockerfile path are specified, along with the desired tags and platforms for the image.
+
+```yaml
+name: Build Docker images
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build-and-push-dockerfile-image:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }} # Make sure to add the secrets in your repository in -> Settings -> Secrets (Actions) -> New repository secret
+          password: ${{ secrets.DOCKERHUB_TOKEN }}   # Make sure to add the secrets in your repository in -> Settings -> Secrets (Actions) -> New repository secret
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          # Make sure to replace with your own namespace and repository
+          tags: |
+            namespace/example:latest 
+          platforms: linux/amd64     
+```
+
+--------------------------------
+
+### Docker Compose Volume Mounting
+
+Source: https://docs.dokploy.com/docs/core/docker-compose
+
+Demonstrates recommended Docker Compose volume mounting syntax for data persistence across deployments. It highlights the correct method using relative paths to a shared 'files' directory and warns against direct host mounts which can lead to data loss upon redeployment. This is crucial for maintaining stateful applications.
+
+```yaml
+volumes:
+  - "../files/my-database:/var/lib/mysql" ✅
+  - "../files/my-configs:/etc/my-app/config" ✅
+```
+
+--------------------------------
+
+### Trigger Dokploy Deployment via GitHub Actions (External Registry)
+
+Source: https://docs.dokploy.com/docs/core/applications/going-production
+
+This snippet shows a GitHub Actions workflow that builds a Docker image and pushes it to an external registry. It then uses a `curl` command to trigger a deployment in Dokploy via its API, providing the application ID and an API key.
+
+```yaml
+name: Build Docker images
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build-and-push-dockerfile-image:
+    runs-on: ubuntu-latest
+
+    steps:
+       ...Same as step 7 from the previous example
+          
+      - name: Trigger Dokploy Deployment
+        uses: dokploy/dokploy-action@v1
+        run: |
+            curl -X 'POST' \
+            'https://<your-dokploy-domain>/api/trpc/application.deploy' \
+            -H 'accept: application/json' \
+            -H 'x-api-key: YOUR-GENERATED-API-KEY' \
+            -H 'Content-Type: application/json' \
+            -d '{ "json":{ "applicationId": "YOUR-APPLICATION-ID" } }'
+```
+
+--------------------------------
+
+### Deploy Dokploy Traefik Service with Docker Swarm
+
+Source: https://docs.dokploy.com/docs/core/manual-installation
+
+This snippet demonstrates deploying the Traefik reverse proxy as a Docker service within a Docker Swarm. It uses `docker service create` with options for service name, network, volume mounts for configuration, port publishing, and the Traefik image.
+
+```bash
+docker service create \
+    --name dokploy-traefik \
+    --constraint 'node.role==manager' \
+    --network dokploy-network \
+    --mount type=bind,source=/etc/dokploy/traefik/traefik.yml,target=/etc/traefik/traefik.yml \
+    --mount type=bind,source=/etc/dokploy/traefik/dynamic,target=/etc/dokploy/traefik/dynamic \
+    --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock,readonly \
+    --publish mode=host,published=443,target=443 \
+    --publish mode=host,published=80,target=80 \
+    --publish mode=host,published=443,target=443,protocol=udp \
+    traefik:v3.6.1
+```
+
+--------------------------------
+
+### Deploy Dokploy Traefik Container with Docker
+
+Source: https://docs.dokploy.com/docs/core/manual-installation
+
+This snippet shows how to run the Traefik reverse proxy container for Dokploy using Docker. It maps host ports for HTTP and HTTPS, mounts the Docker socket for Traefik to interact with the Docker API, and specifies the Traefik image version.
+
+```bash
+-v /var/run/docker.sock:/var/run/docker.sock:ro \
+        -p 80:80/tcp \
+        -p 443:443/tcp \
+        -p 443:443/udp \
+        traefik:v3.6.1
+
+docker network connect dokploy-network dokploy-traefik
+```
+
+--------------------------------
+
+### Auto Deploy via Webhook
+
+Source: https://docs.dokploy.com/docs/core/auto-deploy
+
+Configure webhooks to automatically deploy your application whenever changes are made in your source repository. This method is supported for GitHub, GitLab, Bitbucket, Gitea, and DockerHub (for Applications).
+
+```APIDOC
+## Auto Deploy via Webhook
+
+### Description
+Automatically deploy your application whenever changes are made in your source repository using webhooks. Supported for GitHub, GitLab, Bitbucket, Gitea, and DockerHub (for Applications).
+
+### Method
+POST (via webhook trigger)
+
+### Endpoint
+[Webhook URL provided by Dokploy]
+
+### Parameters
+#### Query Parameters
+None
+
+#### Request Body
+None (Triggered by repository push/DockerHub tag)
+
+### Request Example
+None (Webhook is configured in the source repository)
+
+### Response
+#### Success Response (200)
+- **status** (string) - Indicates the deployment status.
+- **message** (string) - A message detailing the deployment outcome.
+
+#### Response Example
+{
+  "status": "success",
+  "message": "Deployment triggered successfully."
+}
+```
+
+--------------------------------
+
+### Customize Docker Swarm Advertise Address
+
+Source: https://docs.dokploy.com/docs/core/manual-installation
+
+This section explains how to customize the `--advertise-addr` parameter in the `docker swarm init` command. It shows how to replace the default external IP address retrieval with a static IP address for the Docker Swarm manager node.
+
+```bash
+# advertise_addr=$(curl -s ifconfig.me)
+advertise_addr="192.168.1.100"
+```
+
+--------------------------------
+
+### Docker Cleanup
+
+Source: https://docs.dokploy.com/docs/core/uninstall
+
+Performs a comprehensive cleanup of unused Docker resources, including containers, images, volumes, builder cache, and system-wide prune.
+
+```bash
+docker container prune --force
+docker image prune --all --force
+docker volume prune --all --force
+docker builder prune --all --force
+docker system prune --all --volumes --force
+```
+
+--------------------------------
+
+### List Projects and Services via Dokploy API
+
+Source: https://docs.dokploy.com/docs/core/auto-deploy
+
+This cURL command retrieves a list of all projects and services within your Dokploy account. It requires an API token for authentication and is useful for identifying the `applicationId` needed for triggering deployments.
+
+```bash
+curl -X 'GET' \
+  'https://your-domain/api/project.all' \
+  -H 'accept: application/json' \
+  -H 'x-api-key: <token>'
+```
+
+--------------------------------
+
+### Disable Dokploy 2FA with Docker
+
+Source: https://docs.dokploy.com/docs/core/reset-password
+
+This snippet details how to disable Two-Factor Authentication (2FA) for your Dokploy account. Similar to password reset, you need to access your VPS, identify the Dokploy container ID via 'docker ps', and then execute a command to run the 'reset-2fa' script. Successful execution allows login without a 2FA code.
+
+```bash
+docker ps
+docker exec -it <container-id> bash -c "pnpm run reset-2fa"
+```
+
+--------------------------------
+
+### Deploy Application via API
+
+Source: https://docs.dokploy.com/docs/core/auto-deploy
+
+Deploy your application programmatically using the Dokploy API. This is useful for triggering deployments from CI/CD pipelines or scripts. Requires an API token and the application ID.
+
+```APIDOC
+## Deploy Application via API
+
+### Description
+Deploy your application programmatically using the Dokploy API. This method allows for flexible, scriptable deployment options, suitable for automated systems or situations where direct repository integration is not feasible.
+
+### Method
+POST
+
+### Endpoint
+`https://your-domain/api/application.deploy`
+
+### Parameters
+#### Path Parameters
+None
+
+#### Query Parameters
+None
+
+#### Request Body
+- **applicationId** (string) - Required - The unique identifier of the application to deploy.
+
+### Request Example
+```json
+{
+  "applicationId": "string"
+}
+```
+
+### Request Headers
+- **x-api-key** (string) - Required - Your Dokploy API token.
+- **accept** (string) - Required - `application/json`
+- **Content-Type** (string) - Required - `application/json`
+
+### Response
+#### Success Response (200)
+- **status** (string) - Indicates the deployment status.
+- **message** (string) - A message detailing the deployment outcome.
+
+#### Response Example
+{
+  "status": "success",
+  "message": "Deployment triggered successfully."
+}
+```
+
+```APIDOC
+## Retrieve Application ID using API
+
+### Description
+Lists all projects and services associated with your Dokploy account to help you retrieve the `applicationId` for the application you wish to deploy.
+
+### Method
+GET
+
+### Endpoint
+`https://your-domain/api/project.all`
+
+### Parameters
+#### Path Parameters
+None
+
+#### Query Parameters
+None
+
+#### Request Body
+None
+
+### Request Example
+```bash
+curl -X 'GET' \
+  'https://your-domain/api/project.all' \
+  -H 'accept: application/json' \
+  -H 'x-api-key: <token>'
+```
+
+### Response
+#### Success Response (200)
+- **projects** (array) - A list of projects and their associated applications.
+  - **applicationId** (string) - The ID of the application.
+  - **name** (string) - The name of the application.
+
+#### Response Example
+```json
+{
+  "projects": [
+    {
+      "applicationId": "your-application-id",
+      "name": "Your Application Name"
+    }
+  ]
+}
+```
+```
+
+--------------------------------
+
+### Reset Dokploy Password with Docker
+
+Source: https://docs.dokploy.com/docs/core/reset-password
+
+This snippet shows how to reset your Dokploy account password. It requires logging into your VPS, finding the Dokploy container ID using 'docker ps', and then executing a command to run the 'reset-password' script within the container. This will output a new password for dashboard access.
+
+```bash
+docker ps
+docker exec -it <container-id> bash -c "pnpm run reset-password"
+```
+
+--------------------------------
+
+### Trigger Application Deployment via Dokploy API
+
+Source: https://docs.dokploy.com/docs/core/auto-deploy
+
+This cURL command initiates a deployment for a specific application using the Dokploy API. You need to provide a valid API token and the `applicationId` of the target application in the request body. This method is ideal for CI/CD integration.
+
+```bash
+curl -X 'POST' \
+  'https://your-domain/api/application.deploy' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -H 'x-api-key: <token>' \
+  -d '{ "applicationId": "string" }'
+```
+
+--------------------------------
+
+### Use Project-Level Variable in Service (Bash)
+
+Source: https://docs.dokploy.com/docs/core/variables
+
+Reference a project-level environment variable within a service's configuration. Dokploy replaces the placeholder `${{project.VARIABLE_NAME}}` with the actual value. This allows for centralized management of shared configurations.
+
+```bash
+DATABASE_URL=${{project.DATABASE_URL}}
+```
+
+--------------------------------
+
+### Bash Script for Docker Cleanup (Server Jobs)
+
+Source: https://docs.dokploy.com/docs/core/schedule-jobs
+
+A bash script designed to clean up unused Docker resources, such as stopped containers and unused images. This script can be scheduled to run periodically on a server. It uses `docker system prune --force` for cleanup.
+
+```bash
+#!/bin/bash
+docker system prune --force
+```
+
+--------------------------------
+
+### Remove Dokploy Files
+
+Source: https://docs.dokploy.com/docs/core/uninstall
+
+Deletes the main Dokploy configuration files and directories from the server.
+
+```bash
+sudo rm -rf /etc/dokploy
+```
+
+--------------------------------
+
+### Run Command in Docker Container (Application/Compose Jobs)
+
+Source: https://docs.dokploy.com/docs/core/schedule-jobs
+
+Executes a specified command within a target Docker container. This is used for Application and Compose job types in Dokploy. Ensure the target container is running and accessible.
+
+```bash
+docker exec -it <container_id> <command>
+```
+
+--------------------------------
+
+### Incorrect Docker Compose Volume Mounting
+
+Source: https://docs.dokploy.com/docs/core/docker-compose
+
+Illustrates an incorrect Docker Compose volume mounting syntax that is discouraged due to data loss issues. Mounting directly to the host machine using absolute paths can cause volumes to be cleaned up during new deployments, leading to persistence problems.
+
+```yaml
+volumes:
+  - "/folder:/path/in/container" ❌
+```
+
+--------------------------------
+
+### Define Service-Level Variables (Bash)
+
+Source: https://docs.dokploy.com/docs/core/variables
+
+Configure variables specific to an individual service. These can override project or environment variables and are useful for service-unique settings like database users or deployment URLs.
+
+```bash
+DATABASE_USER=service_user
+DATABASE_PASSWORD=service_password
+DATABASE_URL=postgresql://${{DATABASE_USER}}:${{DATABASE_PASSWORD}}@service-database:5432/postgres
+APP_URL=https://${{DOKPLOY_DEPLOY_URL}}
+```
+
+--------------------------------
+
+### Use Environment-Level Variables in Service (Bash)
+
+Source: https://docs.dokploy.com/docs/core/variables
+
+Incorporate environment-level variables into a service's configuration. Dokploy substitutes `${{environment.VARIABLE_NAME}}` with the value defined for the current environment, enabling environment-specific settings.
+
+```bash
+DATABASE_URL=postgresql://postgres:${{environment.DATABASE_PASSWORD}}@staging-db:5432/postgres
+EXTERNAL_API_KEY=${{environment.API_KEY}}
+```
+
+--------------------------------
+
+### Docker Swarm Update Configuration for Automatic Rollback
+
+Source: https://docs.dokploy.com/docs/core/applications/rollbacks
+
+This JSON configuration specifies how Docker Swarm should handle deployment updates, including rollback behavior. It defines parallelism for rolling out updates, delay between updates, the action to take on failure (rollback), and the order of operations (start-first), ensuring a safe deployment process.
+
+```json
+{
+  "Parallelism": 1,
+  "Delay": 10000000000,
+  "FailureAction": "rollback",
+  "Order": "start-first"
+}
+```
+
+--------------------------------
+
+### Define Environment-Level Variables (Bash)
+
+Source: https://docs.dokploy.com/docs/core/variables
+
+Set environment-specific variables for a particular deployment environment. These variables are used to override or provide configurations unique to that environment, such as staging or production.
+
+```bash
+DATABASE_PASSWORD=staging_secret_password
+API_KEY=staging_api_key_12345
+```
+
+--------------------------------
+
+### Docker Compose with Traefik Domain Routing
+
+Source: https://docs.dokploy.com/docs/core/docker-compose/domains
+
+Configures Docker Compose services (frontend, backend) with Traefik labels to enable custom domain routing. It uses `expose` for internal port access and defines router rules.
+
+```yaml
+version: "3.8"
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend:/app
+    expose:
+      - 3000
+    depends_on:
+      - backend
+    networks:
+      - dokploy-network
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.frontend-app.rule=Host(`frontend.dokploy.com`)
+      - traefik.http.routers.frontend-app.entrypoints=web
+      - traefik.http.services.frontend-app.loadbalancer.server.port=3000
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend:/app
+    expose:
+      - 5000
+    environment:
+      - DATABASE_URL=postgres://postgres:password@database:5432/mydatabase
+    depends_on:
+      - database
+    networks:
+      - dokploy-network
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.backend-app.rule=Host(`backend.dokploy.com`)
+      - traefik.http.routers.backend-app.entrypoints=web
+      - traefik.http.services.backend-app.loadbalancer.server.port=5000
+
+  database:
+    # ... (same as before)
+
+volumes:
+  db-data:
+
+networks:
+  dokploy-network:
+    external: true
+
+```
+
+--------------------------------
+
+### Configure Docker Swarm Health Check for Zero Downtime Deployments
+
+Source: https://docs.dokploy.com/docs/core/applications/zero-downtime
+
+This JSON configuration is used in Dokploy's Swarm Settings to define health checks for zero downtime deployments. It specifies a command to test the application's health, along with intervals, timeouts, and retries.
+
+```json
+{
+  "Test": [
+    "CMD",
+    "curl",
+    "-f",
+    "http://localhost:3000/api/health"
+  ],
+  "Interval": 30000000000,
+  "Timeout": 10000000000,
+  "StartPeriod": 30000000000,
+  "Retries": 3
+}
+```
+
+```json
+{
+  "Test": [
+    "CMD",
+    "curl",
+    "-f",
+    "http://localhost:3000/health"
+  ],
+  "Interval": 30000000000,
+  "Timeout": 10000000000,
+  "StartPeriod": 30000000000,
+  "Retries": 3
+}
+```
+
+--------------------------------
+
+### Remove Docker Services
+
+Source: https://docs.dokploy.com/docs/core/uninstall
+
+Removes the Docker swarm services specifically created by Dokploy. Ensure Dokploy is not actively running before executing these commands.
+
+```bash
+docker service remove dokploy dokploy-traefik dokploy-postgres dokploy-redis
+docker container remove -f dokploy-traefik
+```
+
+--------------------------------
+
+### AWS S3 IAM Policy JSON Configuration
+
+Source: https://docs.dokploy.com/docs/core/aws-s3
+
+This JSON policy grants necessary permissions to an IAM user for listing buckets and performing object-level actions (GetObject, PutObject, DeleteObject) on a specified S3 bucket. Ensure the 'Resource' fields are updated with your actual bucket name.
+
+```json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "AllowListBucket",
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::bucket-name"
+    },
+    {
+      "Sid": "AllowBucketObjectActions",
+      "Effect": "Allow",
+      "Action": [
+        "s3:GetObject",
+        "s3:PutObject",
+        "s3:DeleteObject"
+      ],
+      "Resource": "arn:aws:s3:::bucket-name/*"
+    }
+  ]
+}
+```
+
+--------------------------------
+
+### Remove Docker Volumes
+
+Source: https://docs.dokploy.com/docs/core/uninstall
+
+Deletes the Docker volumes used by Dokploy to persist data. This action will result in data loss for the removed volumes.
+
+```bash
+docker volume remove -f dokploy dokploy-postgres dokploy-redis
+```
+
+--------------------------------
+
+### Remove Docker Network
+
+Source: https://docs.dokploy.com/docs/core/uninstall
+
+Removes the Docker network created by Dokploy. This will disconnect any containers previously attached to this network.
+
+```bash
+docker network remove -f dokploy-network
+```
+
+=== COMPLETE CONTENT === This response contains all available snippets from this library. No additional content exists. Do not make further requests.
