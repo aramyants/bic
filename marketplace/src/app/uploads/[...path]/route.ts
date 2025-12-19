@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
 import { getUploadsDir } from "@/lib/uploads-server";
 
@@ -15,10 +15,10 @@ const MIME_BY_EXTENSION: Record<string, string> = {
 };
 
 export async function GET(
-  _request: Request,
-  { params }: { params: { path?: string[] } }
+  _request: NextRequest,
+  { params }: { params: Promise<{ path: string[] }> }
 ) {
-  const parts = params.path ?? [];
+  const { path: parts } = await params;
   if (!parts.length) {
     return NextResponse.json({ error: "Not Found" }, { status: 404 });
   }
