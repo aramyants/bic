@@ -9,19 +9,38 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { Testimonial } from '@/db/schema';
 
+export type TestimonialActionState = {
+  status: 'idle' | 'error';
+  message?: string;
+};
+
+type TestimonialFormAction = (
+  state: TestimonialActionState,
+  formData: FormData
+) => Promise<TestimonialActionState>;
+
 interface TestimonialFormProps {
-  action: (formData: FormData) => Promise<void>;
+  action: TestimonialFormAction;
   initialData?: Testimonial;
 }
 
+const DEFAULT_STATE: TestimonialActionState = { status: 'idle' };
+
 export function TestimonialForm({ action, initialData }: TestimonialFormProps) {
+  const [state, formAction] = React.useActionState(action, DEFAULT_STATE);
   const [rating, setRating] = React.useState(initialData?.rating ?? 5);
   const [avatar, setAvatar] = React.useState<string[]>(
     initialData?.avatar ? [initialData.avatar] : []
   );
+  const showError = state.status === 'error';
 
   return (
-    <form action={action} className="space-y-6">
+    <form action={formAction} className="space-y-6">
+      {showError ? (
+        <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+          {state.message ?? 'Unable to save testimonial.'}
+        </div>
+      ) : null}
       <div className="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-2">

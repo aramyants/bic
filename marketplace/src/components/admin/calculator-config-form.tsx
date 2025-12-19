@@ -7,17 +7,37 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { CalculatorConfig } from '@/db/schema';
 
+export type CalculatorConfigActionState = {
+  status: 'idle' | 'error';
+  message?: string;
+};
+
+type CalculatorConfigFormAction = (
+  state: CalculatorConfigActionState,
+  formData: FormData
+) => Promise<CalculatorConfigActionState>;
+
 interface CalculatorConfigFormProps {
-  action: (formData: FormData) => Promise<void>;
+  action: CalculatorConfigFormAction;
   initialData?: CalculatorConfig;
 }
+
+const DEFAULT_STATE: CalculatorConfigActionState = { status: 'idle' };
 
 export function CalculatorConfigForm({
   action,
   initialData,
 }: CalculatorConfigFormProps) {
+  const [state, formAction] = React.useActionState(action, DEFAULT_STATE);
+  const showError = state.status === 'error';
+
   return (
-    <form action={action} className="space-y-6">
+    <form action={formAction} className="space-y-6">
+      {showError ? (
+        <div className="rounded-lg border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-100">
+          {state.message ?? 'Unable to save calculator configuration.'}
+        </div>
+      ) : null}
       <input
         type="hidden"
         name="mode"

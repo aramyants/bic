@@ -2,12 +2,25 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 
-import { TestimonialForm } from '@/components/admin/testimonial-form';
+import {
+  TestimonialForm,
+  type TestimonialActionState,
+} from '@/components/admin/testimonial-form';
 import {
   deleteTestimonial,
   getTestimonialById,
   updateTestimonial,
 } from '@/server/testimonials-service';
+
+const DEFAULT_ERROR_MESSAGE = 'Unable to save testimonial.';
+
+function getTestimonialErrorMessage(error: unknown) {
+  const code = (error as { code?: string })?.code;
+  if (code === '42P01' || code === '42703') {
+    return 'Database schema is missing testimonial tables or columns. Run npm run db:migrate.';
+  }
+  return DEFAULT_ERROR_MESSAGE;
+}
 
 export default async function EditTestimonialPage({
   params,
@@ -21,7 +34,10 @@ export default async function EditTestimonialPage({
     notFound();
   }
 
-  async function handleUpdate(formData: FormData) {
+  async function handleUpdate(
+    _prevState: TestimonialActionState,
+    formData: FormData
+  ): Promise<TestimonialActionState> {
     'use server';
 
     const name = formData.get('name') as string;
@@ -33,15 +49,20 @@ export default async function EditTestimonialPage({
     const avatarRaw = (formData.get('avatar') as string) ?? '';
     const avatar = avatarRaw.trim() || null;
 
-    await updateTestimonial(id, {
-      name,
-      location: location || null,
-      avatar,
-      content,
-      rating,
-      isPublished,
-      sortOrder,
-    });
+    try {
+      await updateTestimonial(id, {
+        name,
+        location: location || null,
+        avatar,
+        content,
+        rating,
+        isPublished,
+        sortOrder,
+      });
+    } catch (error) {
+      console.error('[testimonials] update failed', error);
+      return { status: 'error', message: getTestimonialErrorMessage(error) };
+    }
 
     redirect('/admin/testimonials');
   }
@@ -49,7 +70,12 @@ export default async function EditTestimonialPage({
   async function handleDelete() {
     'use server';
 
-    await deleteTestimonial(id);
+    try {
+      await deleteTestimonial(id);
+    } catch (error) {
+      console.error('[testimonials] delete failed', error);
+      return;
+    }
     redirect('/admin/testimonials');
   }
 

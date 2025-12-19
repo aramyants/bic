@@ -2,7 +2,10 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 
-import { CalculatorConfigForm } from '@/components/admin/calculator-config-form';
+import {
+  CalculatorConfigForm,
+  type CalculatorConfigActionState,
+} from '@/components/admin/calculator-config-form';
 import { Button } from '@/components/ui/button';
 import {
   deleteCalculatorConfig,
@@ -10,6 +13,16 @@ import {
   setActiveCalculatorConfig,
   updateCalculatorConfig,
 } from '@/server/calculator-service';
+
+const DEFAULT_ERROR_MESSAGE = 'Unable to save calculator configuration.';
+
+function getCalculatorErrorMessage(error: unknown) {
+  const code = (error as { code?: string })?.code;
+  if (code === '42P01' || code === '42703') {
+    return 'Database schema is missing calculator tables or columns. Run npm run db:migrate.';
+  }
+  return DEFAULT_ERROR_MESSAGE;
+}
 
 export default async function EditCalculatorConfigPage({
   params,
@@ -23,7 +36,10 @@ export default async function EditCalculatorConfigPage({
     notFound();
   }
 
-  async function handleUpdate(formData: FormData) {
+  async function handleUpdate(
+    _prevState: CalculatorConfigActionState,
+    formData: FormData
+  ): Promise<CalculatorConfigActionState> {
     'use server';
 
     const name = formData.get('name') as string;
@@ -58,25 +74,30 @@ export default async function EditCalculatorConfigPage({
       formData.get('documentPackageCost') as string
     );
 
-    await updateCalculatorConfig(id, {
-      name,
-      description: description || null,
-      mode,
-      isActive,
-      applyToVehicles,
-      logisticsBaseCost,
-      logisticsCostPerKm,
-      dutyPercent,
-      exciseBaseCost,
-      recyclingBaseCost,
-      vatPercent,
-      brokerBaseCost,
-      commissionPercent,
-      insurancePercent,
-      serviceFeeIndividualPercent,
-      serviceFeeCompanyPercent,
-      documentPackageCost,
-    });
+    try {
+      await updateCalculatorConfig(id, {
+        name,
+        description: description || null,
+        mode,
+        isActive,
+        applyToVehicles,
+        logisticsBaseCost,
+        logisticsCostPerKm,
+        dutyPercent,
+        exciseBaseCost,
+        recyclingBaseCost,
+        vatPercent,
+        brokerBaseCost,
+        commissionPercent,
+        insurancePercent,
+        serviceFeeIndividualPercent,
+        serviceFeeCompanyPercent,
+        documentPackageCost,
+      });
+    } catch (error) {
+      console.error('[calculator] update failed', error);
+      return { status: 'error', message: getCalculatorErrorMessage(error) };
+    }
 
     redirect('/admin/calculator');
   }
@@ -84,14 +105,24 @@ export default async function EditCalculatorConfigPage({
   async function handleDelete() {
     'use server';
 
-    await deleteCalculatorConfig(id);
+    try {
+      await deleteCalculatorConfig(id);
+    } catch (error) {
+      console.error('[calculator] delete failed', error);
+      return;
+    }
     redirect('/admin/calculator');
   }
 
   async function handleSetActive() {
     'use server';
 
-    await setActiveCalculatorConfig(id);
+    try {
+      await setActiveCalculatorConfig(id);
+    } catch (error) {
+      console.error('[calculator] set-active failed', error);
+      return;
+    }
     redirect('/admin/calculator');
   }
 

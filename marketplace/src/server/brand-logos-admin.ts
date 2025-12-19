@@ -84,7 +84,8 @@ export async function createBrandLogoAction(
     revalidatePath('/admin');
     return { status: 'success', message: 'Логотип добавлен.' };
   } catch (error) {
-    if ((error as { code?: string }).code === '42P01') {
+    const code = (error as { code?: string }).code;
+    if (code === '42P01' || code === '42703') {
       return { status: 'error', message: 'Нужно выполнить миграции базы (npm run db:migrate).' };
     }
     console.error('[brand-logos] create failed', error);
@@ -119,7 +120,8 @@ export async function updateBrandLogoAction(
     revalidatePath('/admin');
     return { status: 'success', message: 'Обновлено.' };
   } catch (error) {
-    if ((error as { code?: string }).code === '42P01') {
+    const code = (error as { code?: string }).code;
+    if (code === '42P01' || code === '42703') {
       return { status: 'error', message: 'Нужно выполнить миграции базы (npm run db:migrate).' };
     }
     console.error('[brand-logos] update failed', error);

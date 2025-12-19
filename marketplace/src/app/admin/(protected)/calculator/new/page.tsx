@@ -2,11 +2,27 @@ import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
-import { CalculatorConfigForm } from '@/components/admin/calculator-config-form';
+import {
+  CalculatorConfigForm,
+  type CalculatorConfigActionState,
+} from '@/components/admin/calculator-config-form';
 import { createCalculatorConfig } from '@/server/calculator-service';
 
+const DEFAULT_ERROR_MESSAGE = 'Unable to save calculator configuration.';
+
+function getCalculatorErrorMessage(error: unknown) {
+  const code = (error as { code?: string })?.code;
+  if (code === '42P01' || code === '42703') {
+    return 'Database schema is missing calculator tables or columns. Run npm run db:migrate.';
+  }
+  return DEFAULT_ERROR_MESSAGE;
+}
+
 export default function NewCalculatorConfigPage() {
-  async function handleCreate(formData: FormData) {
+  async function handleCreate(
+    _prevState: CalculatorConfigActionState,
+    formData: FormData
+  ): Promise<CalculatorConfigActionState> {
     'use server';
 
     const name = formData.get('name') as string;
@@ -41,25 +57,30 @@ export default function NewCalculatorConfigPage() {
       formData.get('documentPackageCost') as string
     );
 
-    await createCalculatorConfig({
-      name,
-      description: description || null,
-      mode,
-      isActive,
-      applyToVehicles,
-      logisticsBaseCost,
-      logisticsCostPerKm,
-      dutyPercent,
-      exciseBaseCost,
-      recyclingBaseCost,
-      vatPercent,
-      brokerBaseCost,
-      commissionPercent,
-      insurancePercent,
-      serviceFeeIndividualPercent,
-      serviceFeeCompanyPercent,
-      documentPackageCost,
-    });
+    try {
+      await createCalculatorConfig({
+        name,
+        description: description || null,
+        mode,
+        isActive,
+        applyToVehicles,
+        logisticsBaseCost,
+        logisticsCostPerKm,
+        dutyPercent,
+        exciseBaseCost,
+        recyclingBaseCost,
+        vatPercent,
+        brokerBaseCost,
+        commissionPercent,
+        insurancePercent,
+        serviceFeeIndividualPercent,
+        serviceFeeCompanyPercent,
+        documentPackageCost,
+      });
+    } catch (error) {
+      console.error('[calculator] create failed', error);
+      return { status: 'error', message: getCalculatorErrorMessage(error) };
+    }
 
     redirect('/admin/calculator');
   }

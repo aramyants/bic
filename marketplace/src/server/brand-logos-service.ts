@@ -35,13 +35,22 @@ export async function getAllBrandLogos(): Promise<BrandLogo[]> {
 }
 
 export async function getBrandLogoById(id: string): Promise<BrandLogo | null> {
-  const result = await db
-    .select()
-    .from(brandLogos)
-    .where(eq(brandLogos.id, id))
-    .limit(1);
+  try {
+    const result = await db
+      .select()
+      .from(brandLogos)
+      .where(eq(brandLogos.id, id))
+      .limit(1);
 
-  return result[0] ?? null;
+    return result[0] ?? null;
+  } catch (error) {
+    const code = (error as { code?: string })?.code;
+    if (code === '42P01' || code === '42703') {
+      console.error('[brand-logos] table unavailable', error);
+      return null;
+    }
+    throw error;
+  }
 }
 
 export async function createBrandLogo(
