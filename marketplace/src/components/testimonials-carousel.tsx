@@ -9,6 +9,13 @@ interface TestimonialsCarouselProps {
   testimonials: Testimonial[];
 }
 
+const getInitial = (name: string) => {
+  const trimmed = name.trim();
+  if (!trimmed) return "?";
+  const [first] = Array.from(trimmed);
+  return first ? first.toUpperCase() : "?";
+};
+
 export function TestimonialsCarousel({ testimonials }: TestimonialsCarouselProps) {
   const [index, setIndex] = useState(0);
   const total = testimonials.length;
@@ -101,7 +108,7 @@ export function TestimonialsCarousel({ testimonials }: TestimonialsCarouselProps
                   />
                 ) : (
                   <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/10 text-sm font-semibold text-white">
-                    {testimonial.name[0]}
+                    {getInitial(testimonial.name)}
                   </div>
                 )}
                 <div>

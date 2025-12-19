@@ -35,7 +35,7 @@ interface VehicleFormProps {
     fuelType?: string[];
     transmission?: string[];
     driveType?: string[];
-    color?: string[];
+    color?: SelectOption[];
   };
 }
 
@@ -52,6 +52,7 @@ export function VehicleForm({ action, defaultValues = {}, submitLabel = "Save", 
   const initialMediaState = buildInitialMediaState(defaultValues.gallery, defaultValues.thumbnailUrl);
   const [galleryImages, setGalleryImages] = useState<string[]>(initialMediaState.images);
   const [coverImage, setCoverImage] = useState<string | null>(initialMediaState.cover);
+  const colorOptions: SelectOption[] = taxonomies?.color?.length ? taxonomies.color : [...COLORS];
 
   const showSuccess = state.status === "success";
   const showError = state.status === "error";
@@ -117,6 +118,7 @@ export function VehicleForm({ action, defaultValues = {}, submitLabel = "Save", 
           name="country"
           options={COUNTRIES.map((c) => ({ value: c.code, label: `${c.code} — ${c.name}` }))}
           defaultValue={defaultValues.country as string}
+          required
         />
         <Field label="Город" name="city" defaultValue={defaultValues.city} />
         <SelectField
@@ -156,10 +158,15 @@ export function VehicleForm({ action, defaultValues = {}, submitLabel = "Save", 
         <SelectField
           label="Цвет"
           name="color"
-          options={(taxonomies?.color?.length ? taxonomies.color : COLORS).map((color) => ({
-            value: color,
-            label: COLOR_LABELS[color as keyof typeof COLOR_LABELS] ?? color,
-          }))}
+          options={colorOptions.map((color) => {
+            if (typeof color === "string") {
+              return {
+                value: color,
+                label: COLOR_LABELS[color as keyof typeof COLOR_LABELS] ?? color,
+              };
+            }
+            return color;
+          })}
           defaultValue={defaultValues.color as string}
         />
       </div>
@@ -294,13 +301,26 @@ function TextareaField({
 }
 
 
-function SelectField({ label, name, options, defaultValue }: { label: string; name: string; options: SelectOption[]; defaultValue?: string }) {
+function SelectField({
+  label,
+  name,
+  options,
+  defaultValue,
+  required,
+}: {
+  label: string;
+  name: string;
+  options: SelectOption[];
+  defaultValue?: string;
+  required?: boolean;
+}) {
   return (
     <label className="space-y-2 text-sm text-white/70">
       <span className="block text-xs uppercase tracking-[0.16em] text-white/50">{label}</span>
       <select
         name={name}
         defaultValue={defaultValue ?? ""}
+        required={required}
         className="h-11 w-full rounded-full border border-white/15 bg-black/30 px-4 text-sm text-white focus:border-brand-primary focus:outline-none"
       >
         <option value="" className="bg-black">

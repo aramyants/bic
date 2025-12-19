@@ -11,7 +11,7 @@ export default async function NewVehiclePage() {
     fuelType: taxonomies.fuelType.map((t) => t.value),
     transmission: taxonomies.transmission.map((t) => t.value),
     driveType: taxonomies.driveType.map((t) => t.value),
-    color: taxonomies.color.map((t) => t.value),
+    color: taxonomies.color.map((t) => ({ value: t.value, label: t.label })),
   };
 
   return (

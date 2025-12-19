@@ -4,6 +4,13 @@ import Link from 'next/link';
 import { Badge } from '@/components/ui/badge';
 import { getAllTestimonials } from '@/server/testimonials-service';
 
+const getInitial = (name: string) => {
+  const trimmed = name.trim();
+  if (!trimmed) return "?";
+  const [first] = Array.from(trimmed);
+  return first ? first.toUpperCase() : "?";
+};
+
 export default async function TestimonialsPage() {
   const testimonials = await getAllTestimonials();
 
@@ -57,7 +64,7 @@ export default async function TestimonialsPage() {
                       />
                     ) : (
                       <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-orange-400 to-orange-600 text-sm font-semibold text-white">
-                        {testimonial.name[0]}
+                        {getInitial(testimonial.name)}
                       </div>
                     )}
                     <div>

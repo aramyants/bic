@@ -5,6 +5,7 @@ import path from "node:path";
 import { NextRequest, NextResponse } from "next/server";
 
 import { ALLOWED_IMAGE_TYPES, MAX_UPLOAD_SIZE_BYTES } from "@/lib/uploads";
+import { getUploadsDir } from "@/lib/uploads-server";
 import { getCurrentAdmin } from "@/server/auth";
 
 const EXTENSION_BY_MIME: Record<string, string> = {
@@ -37,7 +38,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
+    const uploadsDir = getUploadsDir();
     await mkdir(uploadsDir, { recursive: true });
 
     const extension = path.extname(file.name) || EXTENSION_BY_MIME[file.type] || ".bin";

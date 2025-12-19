@@ -418,7 +418,14 @@ const COLOR_MAP: Record<string, string> = {
 };
 
 function colorToHex(color: string) {
-  const key = color.toLowerCase();
+  const trimmed = color.trim();
+  if (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(trimmed)) {
+    return trimmed;
+  }
+  if (trimmed.startsWith("rgb") || trimmed.startsWith("hsl")) {
+    return trimmed;
+  }
+  const key = trimmed.toLowerCase();
   if (COLOR_MAP[key]) return COLOR_MAP[key];
   const palette = ["#0f172a", "#1f2937", "#334155", "#475569", "#f97316", "#2563eb", "#ef4444", "#16a34a"];
   const hash = key.split("").reduce((acc, ch) => acc + ch.charCodeAt(0), 0);

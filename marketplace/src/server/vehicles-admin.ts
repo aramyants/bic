@@ -21,6 +21,30 @@ import { requireAdmin } from "@/server/auth";
 import { getVehicleById } from "@/server/vehicle-service";
 import { postVehicleToChannel } from "@/server/telegram";
 
+const FIELD_LABELS: Record<string, string> = {
+  title: "Название",
+  brand: "Бренд",
+  model: "Модель",
+  year: "Год",
+  priceEur: "Цена, EUR",
+  country: "Страна",
+  originalListingUrl: "Ссылка на оригинал",
+};
+
+function buildVehicleValidationMessage(issues: z.ZodIssue[]) {
+  const fields = new Set<string>();
+  for (const issue of issues) {
+    const key = issue.path[0];
+    if (typeof key === "string" && FIELD_LABELS[key]) {
+      fields.add(FIELD_LABELS[key]);
+    }
+  }
+  if (fields.size === 0) {
+    return "Проверьте заполненные поля и попробуйте снова.";
+  }
+  return `Проверьте поля: ${Array.from(fields).join(", ")}.`;
+}
+
 const emptyToUndefined = <T extends z.ZodTypeAny>(schema: T) =>
   z.preprocess((value) => {
     if (typeof value === "string") {
@@ -129,7 +153,7 @@ export async function createVehicleAction(
   if (!parsedResult.success) {
     return {
       status: "error",
-      message: "Проверьте заполненные поля и попробуйте снова.",
+      message: buildVehicleValidationMessage(parsedResult.error.issues),
     };
   }
 
@@ -268,7 +292,7 @@ export async function updateVehicleAction(
   if (!parsedResult.success) {
     return {
       status: "error",
-      message: "Проверьте заполненные поля и попробуйте снова.",
+      message: buildVehicleValidationMessage(parsedResult.error.issues),
     };
   }
 

@@ -1,4 +1,5 @@
 export const COUNTRIES: { code: string; name: string }[] = [
+  { code: "RU", name: "Россия" },
   { code: "DE", name: "Германия" },
   { code: "PL", name: "Польша" },
   { code: "LT", name: "Литва" },
