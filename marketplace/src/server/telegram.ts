@@ -41,6 +41,8 @@ const normalizeBaseUrl = (value?: string) => {
 
 const APP_URL = normalizeBaseUrl(process.env.PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL);
 const CATALOG_URL = `${APP_URL}/catalog`;
+const DEFAULT_LOGO_URL = `${APP_URL}/logo.png`;
+const BOT_LOGO_URL = process.env.TELEGRAM_BOT_LOGO_URL || DEFAULT_LOGO_URL;
 
 const TELEGRAM_USERNAME = /^@?[a-zA-Z0-9_]{5,32}$/;
 
@@ -87,6 +89,17 @@ async function sendTelegramMessage(payload: Record<string, unknown>) {
   });
 }
 
+async function sendTelegramPhoto(payload: Record<string, unknown>) {
+  if (!BOT_TOKEN) {
+    return;
+  }
+  await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
+
 export async function sendLeadToTelegram(lead: LeadPayload) {
   if (!BOT_TOKEN || !MANAGER_CHAT_ID) {
     return;
@@ -96,7 +109,7 @@ export async function sendLeadToTelegram(lead: LeadPayload) {
   const pageLink =
     lead.pageUrl ?? (lead.vehicleSlug ? `${APP_URL}/catalog/${lead.vehicleSlug}` : null);
 
-  const parts = ["*Новая заявка с сайта B.I.C.*", `Имя: ${escapeMarkdown(lead.name)}`];
+  const parts = ["*📝 Новая заявка с сайта B.I.C.*", `Имя: ${escapeMarkdown(lead.name)}`];
 
   if (includeEmail) parts.push(`Email: ${escapeMarkdown(lead.email)}`);
   if (lead.phone) parts.push(`Телефон: ${escapeMarkdown(lead.phone)}`);
@@ -137,24 +150,37 @@ export async function sendBotWelcome(chatId: number) {
   }
 
   const text = [
-    "Что умеет этот бот?",
-    "B.I.C. - авто из США, Кореи и Европы под ключ.",
+    "🚗 B.I.C. — Best Imported Cars",
+    "Авто из 🇺🇸 США, 🇰🇷 Кореи и 🇪🇺 Европы под ключ.",
     "",
-    "- Открыть каталог в мини-приложении.",
-    "- Оставить заявку и получить расчет.",
-    "- Связаться с менеджером.",
+    "✅ Подбор под ваш бюджет",
+    "✅ Проверка и прозрачный расчет",
+    "✅ Доставка, таможня и сопровождение",
+    "",
+    "Откройте каталог и оставьте заявку — менеджер свяжется с вами.",
   ].join("\n");
 
-  await sendTelegramMessage({
-    chat_id: chatId,
-    text,
-    parse_mode: "Markdown",
-    reply_markup: buildCatalogInlineKeyboard(),
-  });
+  const logoUrl = BOT_LOGO_URL?.trim();
+  if (logoUrl) {
+    await sendTelegramPhoto({
+      chat_id: chatId,
+      photo: logoUrl,
+      caption: text,
+      parse_mode: "Markdown",
+      reply_markup: buildCatalogInlineKeyboard(),
+    });
+  } else {
+    await sendTelegramMessage({
+      chat_id: chatId,
+      text,
+      parse_mode: "Markdown",
+      reply_markup: buildCatalogInlineKeyboard(),
+    });
+  }
 
   await sendTelegramMessage({
     chat_id: chatId,
-    text: 'Нажмите "Каталог", чтобы открыть мини-приложение.',
+    text: '👉 Нажмите "Каталог", чтобы открыть мини-приложение.',
     reply_markup: buildCatalogReplyKeyboard(),
   });
 }
@@ -166,7 +192,7 @@ export async function sendBotCatalogMessage(chatId: number) {
 
   await sendTelegramMessage({
     chat_id: chatId,
-    text: "Каталог доступен по кнопке ниже.",
+    text: "🚗 Откройте каталог B.I.C. в мини-приложении.",
     reply_markup: buildCatalogInlineKeyboard(),
   });
 }
@@ -178,7 +204,7 @@ export async function sendBotThanks(chatId: number) {
 
   await sendTelegramMessage({
     chat_id: chatId,
-    text: "Спасибо! Мы передали вашу заявку менеджерам. Скоро свяжемся.",
+    text: "✅ Спасибо! Мы передали вашу заявку менеджерам. Скоро свяжемся.",
     reply_markup: buildCatalogReplyKeyboard(),
   });
 }
@@ -191,7 +217,7 @@ export async function sendBotLeadToManagers(payload: BotLeadPayload) {
   const name = buildBotUserName(payload);
   const username = payload.username ? `@${payload.username.replace(/^@/, "")}` : null;
 
-  const parts = ["*Новый запрос из Telegram-бота*", `Клиент: ${escapeMarkdown(name)}`];
+  const parts = ["*💬 Новый запрос из Telegram-бота*", `Клиент: ${escapeMarkdown(name)}`];
 
   if (username) parts.push(`Username: ${escapeMarkdown(username)}`);
   if (payload.userId) parts.push(`ID: ${escapeMarkdown(String(payload.userId))}`);

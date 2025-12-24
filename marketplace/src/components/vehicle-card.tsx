@@ -17,10 +17,18 @@ interface VehicleCardProps {
 }
 
 const isRemoteUrl = (url: string) => /^https?:\/\//i.test(url.trim());
+const isUploadUrl = (url: string) => {
+  const trimmed = url.trim();
+  return trimmed.startsWith("/uploads/") || trimmed.startsWith("uploads/");
+};
+const shouldBypassOptimization = (url: string) => isRemoteUrl(url) || isUploadUrl(url);
 const getImageSrc = (url: string) => {
   const trimmed = url.trim();
   if (!trimmed) return trimmed;
-  return isRemoteUrl(trimmed) ? `/api/image-proxy?url=${encodeURIComponent(trimmed)}` : trimmed;
+  if (isRemoteUrl(trimmed)) {
+    return `/api/image-proxy?url=${encodeURIComponent(trimmed)}`;
+  }
+  return trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
 };
 
 export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, eurRubRate, priceCurrency = "EUR" }) => {
@@ -45,7 +53,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, eurRubRate, p
       : [{ url: "/logo.png" }];
   const [photoIndex, setPhotoIndex] = React.useState(0);
   const activePhoto = photos[photoIndex];
-  const activePhotoIsRemote = isRemoteUrl(activePhoto.url);
+  const activePhotoBypassOptimization = shouldBypassOptimization(activePhoto.url);
   const activePhotoSrc = getImageSrc(activePhoto.url);
 
   const next = () => setPhotoIndex((prev) => (prev + 1) % photos.length);
@@ -61,7 +69,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, eurRubRate, p
           sizes="(max-width:768px) 100vw, 33vw"
           className="object-cover transition duration-500 group-hover:scale-105"
           priority
-          unoptimized={activePhotoIsRemote}
+          unoptimized={activePhotoBypassOptimization}
         />
         {photos.length > 1 && (
           <>

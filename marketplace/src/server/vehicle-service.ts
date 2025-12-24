@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, like, lte, or } from "drizzle-orm";
+import { and, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
 import { db } from "@/db/client";
 import {
   vehicles,
@@ -82,14 +82,17 @@ export async function getVehicles(filter: VehicleFilter = {}) {
   const expressions = [eq(vehicles.status, "published")];
 
   if (filter.search) {
-    const pattern = `%${filter.search.toLowerCase()}%`;
-    const searchExpression = or(
-      like(vehicles.brand, pattern),
-      like(vehicles.model, pattern),
-      like(vehicles.title, pattern),
-    );
-    if (searchExpression) {
-      expressions.push(searchExpression);
+    const trimmed = filter.search.trim();
+    if (trimmed) {
+      const pattern = `%${trimmed}%`;
+      const searchExpression = or(
+        ilike(vehicles.brand, pattern),
+        ilike(vehicles.model, pattern),
+        ilike(vehicles.title, pattern),
+      );
+      if (searchExpression) {
+        expressions.push(searchExpression);
+      }
     }
   }
 

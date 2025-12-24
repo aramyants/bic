@@ -13,10 +13,18 @@ interface VehicleGalleryProps {
 }
 
 const isRemoteUrl = (url: string) => /^https?:\/\//i.test(url.trim());
+const isUploadUrl = (url: string) => {
+  const trimmed = url.trim();
+  return trimmed.startsWith("/uploads/") || trimmed.startsWith("uploads/");
+};
+const shouldBypassOptimization = (url: string) => isRemoteUrl(url) || isUploadUrl(url);
 const getImageSrc = (url: string) => {
   const trimmed = url.trim();
   if (!trimmed) return trimmed;
-  return isRemoteUrl(trimmed) ? `/api/image-proxy?url=${encodeURIComponent(trimmed)}` : trimmed;
+  if (isRemoteUrl(trimmed)) {
+    return `/api/image-proxy?url=${encodeURIComponent(trimmed)}`;
+  }
+  return trimmed.startsWith("/") ? trimmed : `/${trimmed}`;
 };
 
 export const VehicleGallery: React.FC<VehicleGalleryProps> = ({ images, title }) => {
@@ -48,7 +56,9 @@ export const VehicleGallery: React.FC<VehicleGalleryProps> = ({ images, title })
   }, [activeIndex]);
 
   const activeImage = images[activeIndex];
-  const activeImageIsRemote = activeImage ? isRemoteUrl(activeImage.url) : false;
+  const activeImageBypassOptimization = activeImage
+    ? shouldBypassOptimization(activeImage.url)
+    : false;
   const activeImageSrc = activeImage ? getImageSrc(activeImage.url) : "";
 
   return (
@@ -96,7 +106,7 @@ export const VehicleGallery: React.FC<VehicleGalleryProps> = ({ images, title })
               sizes="(max-width:768px) 100vw, 60vw"
               className="object-cover transition duration-500 ease-out"
               priority
-              unoptimized={activeImageIsRemote}
+              unoptimized={activeImageBypassOptimization}
             />
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-white/50">Фото пока нет</div>
@@ -155,7 +165,7 @@ export const VehicleGallery: React.FC<VehicleGalleryProps> = ({ images, title })
                 sizes="120px"
                 className="object-cover"
                 loading={index === 0 ? "eager" : "lazy"}
-                unoptimized={isRemoteUrl(image.url)}
+                unoptimized={shouldBypassOptimization(image.url)}
               />
               {index === activeIndex ? <span className="absolute inset-0 border-2 border-brand-primary" /> : null}
             </button>
