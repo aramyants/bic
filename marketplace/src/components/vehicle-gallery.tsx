@@ -12,6 +12,8 @@ interface VehicleGalleryProps {
   title: string;
 }
 
+const isRemoteUrl = (url: string) => url.startsWith("http://") || url.startsWith("https://");
+
 export const VehicleGallery: React.FC<VehicleGalleryProps> = ({ images, title }) => {
   const [activeIndex, setActiveIndex] = React.useState(0);
   const thumbnailsRef = React.useRef<HTMLDivElement | null>(null);
@@ -41,6 +43,7 @@ export const VehicleGallery: React.FC<VehicleGalleryProps> = ({ images, title })
   }, [activeIndex]);
 
   const activeImage = images[activeIndex];
+  const activeImageIsRemote = activeImage ? isRemoteUrl(activeImage.url) : false;
 
   return (
     <div className="flex flex-col gap-4">
@@ -87,6 +90,7 @@ export const VehicleGallery: React.FC<VehicleGalleryProps> = ({ images, title })
               sizes="(max-width:768px) 100vw, 60vw"
               className="object-cover transition duration-500 ease-out"
               priority
+              unoptimized={activeImageIsRemote}
             />
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-white/50">Фото пока нет</div>
@@ -145,6 +149,7 @@ export const VehicleGallery: React.FC<VehicleGalleryProps> = ({ images, title })
                 sizes="120px"
                 className="object-cover"
                 loading={index === 0 ? "eager" : "lazy"}
+                unoptimized={isRemoteUrl(image.url)}
               />
               {index === activeIndex ? <span className="absolute inset-0 border-2 border-brand-primary" /> : null}
             </button>

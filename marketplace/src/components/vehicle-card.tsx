@@ -16,6 +16,8 @@ interface VehicleCardProps {
   priceCurrency?: "EUR" | "RUB";
 }
 
+const isRemoteUrl = (url: string) => url.startsWith("http://") || url.startsWith("https://");
+
 export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, eurRubRate, priceCurrency = "EUR" }) => {
   const { isFavorite, toggleFavorite } = useFavorites();
   const isFav = isFavorite(vehicle.id);
@@ -37,6 +39,8 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, eurRubRate, p
       ? [vehicle.primaryImage]
       : [{ url: "/logo.png" }];
   const [photoIndex, setPhotoIndex] = React.useState(0);
+  const activePhoto = photos[photoIndex];
+  const activePhotoIsRemote = isRemoteUrl(activePhoto.url);
 
   const next = () => setPhotoIndex((prev) => (prev + 1) % photos.length);
   const prev = () => setPhotoIndex((prev) => (prev - 1 + photos.length) % photos.length);
@@ -45,12 +49,13 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, eurRubRate, p
     <div className="group relative flex h-full flex-col overflow-hidden rounded-[36px] border border-white/10 bg-white/8 backdrop-blur-xl shadow-soft transition hover:shadow-strong">
       <div className="relative h-64 overflow-hidden">
         <Image
-          src={photos[photoIndex].url}
+          src={activePhoto.url}
           alt={vehicle.title}
           fill
           sizes="(max-width:768px) 100vw, 33vw"
           className="object-cover transition duration-500 group-hover:scale-105"
           priority
+          unoptimized={activePhotoIsRemote}
         />
         {photos.length > 1 && (
           <>
