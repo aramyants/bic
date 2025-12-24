@@ -32,7 +32,17 @@ export const useRequestModal = () => ({
   close: () => requestModalStore.current.close(),
 });
 
-export function RequestModalProvider({ children }: { children: ReactNode }) {
+type RequestModalProviderProps = {
+  children: ReactNode;
+  telegramUsername?: string | null;
+  telegramContactLink?: string | null;
+};
+
+export function RequestModalProvider({
+  children,
+  telegramUsername,
+  telegramContactLink,
+}: RequestModalProviderProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"call" | "telegram">("call");
   const [context, setContext] = useState<RequestContext | null>(null);
@@ -64,8 +74,8 @@ export function RequestModalProvider({ children }: { children: ReactNode }) {
     window.setTimeout(() => setShowToast(false), 3600);
   };
 
-  const telegramUsername = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME;
-  const telegramFallbackLink = process.env.NEXT_PUBLIC_TELEGRAM_CONTACT_LINK;
+  const resolvedTelegramUsername = telegramUsername?.trim();
+  const resolvedTelegramFallbackLink = telegramContactLink?.trim();
 
   const telegramMessage = useMemo(() => {
     const base =
@@ -81,12 +91,12 @@ export function RequestModalProvider({ children }: { children: ReactNode }) {
 
   const telegramUrl = useMemo(() => {
     const base =
-      telegramFallbackLink ||
-      (telegramUsername ? `https://t.me/${telegramUsername.replace(/^@/, "")}` : undefined);
+      resolvedTelegramFallbackLink ||
+      (resolvedTelegramUsername ? `https://t.me/${resolvedTelegramUsername.replace(/^@/, "")}` : undefined);
     if (!base) return undefined;
     const separator = base.includes("?") ? "&" : "?";
     return `${base}${separator}text=${encodeURIComponent(telegramMessage)}`;
-  }, [telegramMessage, telegramUsername, telegramFallbackLink]);
+  }, [telegramMessage, resolvedTelegramUsername, resolvedTelegramFallbackLink]);
 
   // auto-open Telegram when the tab is selected
   useEffect(() => {

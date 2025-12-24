@@ -56,9 +56,9 @@ export const CostCalculator: React.FC<CostCalculatorProps> = ({ individual, comp
         {rows.map((row) => (
           <div
             key={row.label}
-            className="flex items-center justify-between rounded-full border border-white/12 bg-black/35 px-4 py-3 sm:px-5"
+            className="flex flex-col gap-2 rounded-2xl border border-white/12 bg-black/35 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:rounded-full sm:px-5"
           >
-            <span>{row.label}</span>
+            <span className="min-w-0">{row.label}</span>
             <span className="font-semibold text-white">{formatCurrency(row.value, "RUB")}</span>
           </div>
         ))}

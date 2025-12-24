@@ -6,8 +6,13 @@ import { PublicBackground } from "@/components/public-background";
 import { RequestModalProvider } from "@/components/request-modal";
 
 export default function PublicLayout({ children }: { children: ReactNode }) {
+  const telegramUsername =
+    process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ?? process.env.TELEGRAM_BOT_USERNAME ?? undefined;
+  const telegramContactLink =
+    process.env.NEXT_PUBLIC_TELEGRAM_CONTACT_LINK ?? process.env.TELEGRAM_CONTACT_LINK ?? undefined;
+
   return (
-    <RequestModalProvider>
+    <RequestModalProvider telegramUsername={telegramUsername} telegramContactLink={telegramContactLink}>
       <div className="relative min-h-screen bg-background text-foreground">
         <PublicBackground />
         <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-60">
