@@ -97,8 +97,8 @@ export default async function VehiclePage({
         </Link>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12">
-        <div className="space-y-6">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12">
+        <div className="min-w-0 space-y-6">
           <VehicleGallery images={vehicle.gallery} title={vehicle.title} />
 
           <div className="rounded-[32px] border border-white/10 bg-black/30 p-5 shadow-lg shadow-black/20 sm:p-6">
@@ -174,7 +174,7 @@ export default async function VehiclePage({
           </div>
         </div>
 
-        <div className="space-y-6 rounded-[42px] border border-white/10 bg-white/6 p-5 sm:p-6 md:p-8">
+        <div className="min-w-0 space-y-6 rounded-[42px] border border-white/10 bg-white/6 p-5 sm:p-6 md:p-8">
           <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.1em] text-white/60">
             <Badge tone="outline">{vehicle.brand}</Badge>
             <Badge tone="default">{bodyTypeLabel}</Badge>

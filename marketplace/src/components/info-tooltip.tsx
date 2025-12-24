@@ -28,7 +28,7 @@ export const InfoTooltip: React.FC<InfoTooltipProps> = ({ label, icon, className
       </span>
       <span
         className={cn(
-          "pointer-events-none absolute left-1/2 top-full z-20 mt-3 w-64 -translate-x-1/2 rounded-2xl border border-white/10 bg-black/90 px-4 py-3 text-xs text-white opacity-0 shadow-soft transition-opacity",
+          "pointer-events-none absolute left-1/2 top-full z-20 mt-3 w-[200px] max-w-[calc(100vw-2rem)] -translate-x-1/2 rounded-2xl border border-white/10 bg-black/90 px-4 py-3 text-xs text-white opacity-0 shadow-soft transition-opacity sm:w-64",
           open && "opacity-100",
         )}
       >

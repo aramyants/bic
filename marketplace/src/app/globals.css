@@ -39,6 +39,7 @@ body {
   font-family: var(--font-body);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 [class*="tracking-"] {
