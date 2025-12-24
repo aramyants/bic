@@ -12,7 +12,12 @@ interface VehicleGalleryProps {
   title: string;
 }
 
-const isRemoteUrl = (url: string) => url.startsWith("http://") || url.startsWith("https://");
+const isRemoteUrl = (url: string) => /^https?:\/\//i.test(url.trim());
+const getImageSrc = (url: string) => {
+  const trimmed = url.trim();
+  if (!trimmed) return trimmed;
+  return isRemoteUrl(trimmed) ? `/api/image-proxy?url=${encodeURIComponent(trimmed)}` : trimmed;
+};
 
 export const VehicleGallery: React.FC<VehicleGalleryProps> = ({ images, title }) => {
   const [activeIndex, setActiveIndex] = React.useState(0);
@@ -44,6 +49,7 @@ export const VehicleGallery: React.FC<VehicleGalleryProps> = ({ images, title })
 
   const activeImage = images[activeIndex];
   const activeImageIsRemote = activeImage ? isRemoteUrl(activeImage.url) : false;
+  const activeImageSrc = activeImage ? getImageSrc(activeImage.url) : "";
 
   return (
     <div className="flex flex-col gap-4">
@@ -84,7 +90,7 @@ export const VehicleGallery: React.FC<VehicleGalleryProps> = ({ images, title })
           {activeImage ? (
             <Image
               key={activeImage.id ?? activeImage.url}
-              src={activeImage.url}
+              src={activeImageSrc}
               alt={activeImage.altText ?? title}
               fill
               sizes="(max-width:768px) 100vw, 60vw"
@@ -143,7 +149,7 @@ export const VehicleGallery: React.FC<VehicleGalleryProps> = ({ images, title })
               aria-label={`Показать фото ${index + 1}`}
             >
               <Image
-                src={image.url}
+                src={getImageSrc(image.url)}
                 alt={image.altText ?? title}
                 fill
                 sizes="120px"

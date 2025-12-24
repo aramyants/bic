@@ -16,7 +16,12 @@ interface VehicleCardProps {
   priceCurrency?: "EUR" | "RUB";
 }
 
-const isRemoteUrl = (url: string) => url.startsWith("http://") || url.startsWith("https://");
+const isRemoteUrl = (url: string) => /^https?:\/\//i.test(url.trim());
+const getImageSrc = (url: string) => {
+  const trimmed = url.trim();
+  if (!trimmed) return trimmed;
+  return isRemoteUrl(trimmed) ? `/api/image-proxy?url=${encodeURIComponent(trimmed)}` : trimmed;
+};
 
 export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, eurRubRate, priceCurrency = "EUR" }) => {
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -41,6 +46,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, eurRubRate, p
   const [photoIndex, setPhotoIndex] = React.useState(0);
   const activePhoto = photos[photoIndex];
   const activePhotoIsRemote = isRemoteUrl(activePhoto.url);
+  const activePhotoSrc = getImageSrc(activePhoto.url);
 
   const next = () => setPhotoIndex((prev) => (prev + 1) % photos.length);
   const prev = () => setPhotoIndex((prev) => (prev - 1 + photos.length) % photos.length);
@@ -49,7 +55,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, eurRubRate, p
     <div className="group relative flex h-full flex-col overflow-hidden rounded-[36px] border border-white/10 bg-white/8 backdrop-blur-xl shadow-soft transition hover:shadow-strong">
       <div className="relative h-64 overflow-hidden">
         <Image
-          src={activePhoto.url}
+          src={activePhotoSrc}
           alt={vehicle.title}
           fill
           sizes="(max-width:768px) 100vw, 33vw"
