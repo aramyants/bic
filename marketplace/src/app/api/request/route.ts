@@ -58,6 +58,7 @@ export async function POST(request: Request) {
   await sendLeadToTelegram({
     name: data.name,
     email: data.email,
+    includeEmail: false,
     phone: formattedPhone,
     telegram,
     message: data.message,
