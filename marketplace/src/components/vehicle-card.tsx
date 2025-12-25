@@ -79,7 +79,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, eurRubRate, p
             src={activePhotoSrc}
             alt={vehicle.title}
             className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
-            loading="eager"
+            loading="lazy"
             decoding="async"
           />
         ) : (
@@ -89,7 +89,6 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, eurRubRate, p
             fill
             sizes="(max-width:768px) 100vw, 33vw"
             className="object-cover transition duration-500 group-hover:scale-105"
-            priority
             unoptimized={activePhotoBypassOptimization}
             onError={() => setUseNativeImages(true)}
           />

@@ -14,6 +14,7 @@ function shuffleSources() {
 }
 
 export function PageVideoBackground() {
+  const [enabled, setEnabled] = useState(false);
   const [order, setOrder] = useState<string[]>(VIDEO_SOURCES);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [activeLayer, setActiveLayer] = useState<"a" | "b">("a");
@@ -26,6 +27,23 @@ export function PageVideoBackground() {
   const videoBRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+    const isNarrow = window.matchMedia?.("(max-width: 768px)")?.matches ?? false;
+    const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } })
+      .connection;
+    const saveData = connection?.saveData ?? false;
+    const slowConnection = connection?.effectiveType ? ["slow-2g", "2g"].includes(connection.effectiveType) : false;
+    const deviceMemory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory ?? 8;
+
+    if (reducedMotion || isNarrow || saveData || slowConnection || deviceMemory < 4) {
+      return;
+    }
+    setEnabled(true);
+  }, []);
+
+  useEffect(() => {
+    if (!enabled) return;
     const shuffled = shuffleSources();
     setOrder(shuffled);
     setCurrentIndex(0);
@@ -34,9 +52,10 @@ export function PageVideoBackground() {
       b: shuffled[1 % shuffled.length] ?? shuffled[0],
     });
     setActiveLayer("a");
-  }, []);
+  }, [enabled]);
 
   useEffect(() => {
+    if (!enabled) return;
     const ref = activeLayer === "a" ? videoARef.current : videoBRef.current;
     if (!ref) return;
     const tryPlay = () => {
@@ -53,7 +72,7 @@ export function PageVideoBackground() {
 
     ref.addEventListener("canplay", tryPlay, { once: true });
     return () => ref.removeEventListener("canplay", tryPlay);
-  }, [activeLayer, layerSources]);
+  }, [activeLayer, layerSources, enabled]);
 
   const handleNext = () => {
     const nextIndex = (currentIndex + 1) % order.length;
@@ -68,6 +87,10 @@ export function PageVideoBackground() {
     setActiveLayer(inactiveLayer);
   };
 
+  if (!enabled) {
+    return null;
+  }
+
   return (
     <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-black">
       <video
@@ -79,7 +102,7 @@ export function PageVideoBackground() {
         autoPlay
         muted
         playsInline
-        preload="auto"
+        preload="metadata"
         onEnded={activeLayer === "a" ? handleNext : undefined}
         onError={activeLayer === "a" ? handleNext : undefined}
         aria-hidden
@@ -95,7 +118,7 @@ export function PageVideoBackground() {
         autoPlay
         muted
         playsInline
-        preload="auto"
+        preload="metadata"
         onEnded={activeLayer === "b" ? handleNext : undefined}
         onError={activeLayer === "b" ? handleNext : undefined}
         aria-hidden

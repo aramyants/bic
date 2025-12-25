@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, ilike, inArray, lte, or } from "drizzle-orm";
+import { and, desc, eq, gte, ilike, inArray, lte, or, type SQL } from "drizzle-orm";
 import { db } from "@/db/client";
 import {
   vehicles,
@@ -85,7 +85,7 @@ export async function getVehicles(filter: VehicleFilter = {}) {
     const trimmed = filter.search.trim();
     if (trimmed) {
       const tokens = trimmed.split(/\s+/).filter(Boolean);
-      const tokenExpressions = tokens.map((token) => {
+      const tokenExpressions = tokens.reduce<SQL[]>((acc, token) => {
         const variants = new Set([token]);
         if (token.includes("-")) {
           variants.add(token.replace(/-/g, " "));
@@ -98,13 +98,20 @@ export async function getVehicles(filter: VehicleFilter = {}) {
             ilike(vehicles.title, pattern),
           ];
         });
-        return or(...variantExpressions);
-      });
+        const expr = or(...variantExpressions);
+        if (expr) {
+          acc.push(expr);
+        }
+        return acc;
+      }, []);
 
       if (tokenExpressions.length === 1) {
         expressions.push(tokenExpressions[0]);
       } else if (tokenExpressions.length > 1) {
-        expressions.push(and(...tokenExpressions));
+        const combined = and(...tokenExpressions);
+        if (combined) {
+          expressions.push(combined);
+        }
       }
     }
   }

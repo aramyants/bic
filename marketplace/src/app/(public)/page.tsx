@@ -1,3 +1,5 @@
+export const revalidate = 60;
+
 import {
   ArrowRight,
   Award,
@@ -14,9 +16,11 @@ import {
 import Link from 'next/link';
 import Image from 'next/image';
 
-import { ContactForm } from '@/components/contact-form';
-import { LandedCostCalculator } from '@/components/calculator/landed-cost-calculator';
-import { TestimonialsCarousel } from '@/components/testimonials-carousel';
+import {
+  LazyContactForm,
+  LazyLandedCostCalculator,
+  LazyTestimonialsCarousel,
+} from '@/components/home-dynamic-sections';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { VehicleCard } from '@/components/vehicle-card';
@@ -275,9 +279,7 @@ async function FeaturedCatalog({
   vehicles: Awaited<ReturnType<typeof getFeaturedVehicles>>;
   eurRubRate: number;
 }) {
-  if (!vehicles.length) {
-    return null;
-  }
+  const hasVehicles = vehicles.length > 0;
 
   return (
     <section className="mx-auto w-full max-w-[1320px] space-y-6">
@@ -299,15 +301,21 @@ async function FeaturedCatalog({
           Перейти в каталог
         </Link>
       </div>
-      <div className="grid gap-6 md:grid-cols-3">
-        {vehicles.map((vehicle) => (
-          <VehicleCard
-            key={vehicle.id}
-            vehicle={vehicle}
-            eurRubRate={eurRubRate}
-          />
-        ))}
-      </div>
+      {hasVehicles ? (
+        <div className="grid gap-6 md:grid-cols-3">
+          {vehicles.map((vehicle) => (
+            <VehicleCard
+              key={vehicle.id}
+              vehicle={vehicle}
+              eurRubRate={eurRubRate}
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-[32px] border border-white/10 bg-white/5 p-6 text-sm text-white/65">
+          Сейчас нет доступных предложений — обновим каталог в ближайшее время.
+        </div>
+      )}
     </section>
   );
 }
@@ -328,7 +336,7 @@ function CalculatorSection({
             Рассчитайте цену «под ключ» за 30 секунд
           </h2>
         </div>
-        <LandedCostCalculator
+        <LazyLandedCostCalculator
           baseRate={eurRubRate}
           settings={calculatorSettings}
         />
@@ -342,10 +350,7 @@ function BrandLogosSection({
 }: {
   logos: Awaited<ReturnType<typeof getActiveBrandLogos>>;
 }) {
-  if (!logos.length) {
-    return null;
-  }
-
+  const hasLogos = logos.length > 0;
   const marqueeItems = [...logos, ...logos];
   const durationSeconds = Math.max(18, logos.length * 3);
 
@@ -361,40 +366,51 @@ function BrandLogosSection({
         <div className="pointer-events-none absolute inset-0 z-0 bg-[radial-gradient(120%_140%_at_0%_50%,rgba(0,0,0,0.4),transparent_45%),radial-gradient(120%_140%_at_100%_50%,rgba(0,0,0,0.4),transparent_45%)]" />
         <div className="pointer-events-none absolute left-0 top-0 z-0 h-full w-24 bg-gradient-to-r from-[#0d0d0d] via-[#0d0d0d]/85 to-transparent" />
         <div className="pointer-events-none absolute right-0 top-0 z-0 h-full w-24 bg-gradient-to-l from-[#0d0d0d] via-[#0d0d0d]/85 to-transparent" />
-        <div className="relative z-10 marquee">
-          <div className="marquee-track" style={{ animationDuration: `${durationSeconds}s` }}>
-            {marqueeItems.map((logo, index) => {
-              const content = (
-                <div className="flex h-28 w-56 items-center justify-center px-5 transition hover:scale-[1.03]">
-                  <img
-                    src={logo.logoUrl}
-                    alt={logo.name}
-                    className="max-h-20 w-auto object-contain opacity-95 drop-shadow-[0_6px_18px_rgba(0,0,0,0.35)] transition hover:opacity-100"
-                    loading="lazy"
-                  />
-                </div>
-              );
+        {hasLogos ? (
+          <div className="relative z-10 marquee">
+            <div className="marquee-track" style={{ animationDuration: `${durationSeconds}s` }}>
+              {marqueeItems.map((logo, index) => {
+                const content = (
+                  <div className="flex h-28 w-56 items-center justify-center px-5 transition hover:scale-[1.03]">
+                    <img
+                      src={logo.logoUrl}
+                      alt={logo.name}
+                      className="max-h-20 w-auto object-contain opacity-95 drop-shadow-[0_6px_18px_rgba(0,0,0,0.35)] transition hover:opacity-100"
+                      loading="lazy"
+                    />
+                  </div>
+                );
 
-              const key = `${logo.id}-${index}`;
-              return logo.href ? (
-                <a
-                  key={key}
-                  href={logo.href}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="px-4"
-                  aria-label={logo.name}
-                >
-                  {content}
-                </a>
-              ) : (
-                <div key={key} className="px-4">
-                  {content}
-                </div>
-              );
-            })}
+                const key = `${logo.id}-${index}`;
+                return logo.href ? (
+                  <a
+                    key={key}
+                    href={logo.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="px-4"
+                    aria-label={logo.name}
+                  >
+                    {content}
+                  </a>
+                ) : (
+                  <div key={key} className="px-4">
+                    {content}
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="relative z-10 grid grid-cols-2 gap-4 px-6 py-6 sm:grid-cols-4">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={index}
+                className="h-16 rounded-2xl border border-white/10 bg-white/5"
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
@@ -554,9 +570,7 @@ function TestimonialsSection({
 }: {
   testimonials: Awaited<ReturnType<typeof getPublishedTestimonials>>;
 }) {
-  if (!testimonials.length) {
-    return null;
-  }
+  const hasTestimonials = testimonials.length > 0;
 
   return (
     <section className="mx-auto w-full max-w-[1320px] space-y-5">
@@ -567,7 +581,13 @@ function TestimonialsSection({
           </h3>
         </div>
       </div>
-      <TestimonialsCarousel testimonials={testimonials} />
+      {hasTestimonials ? (
+        <LazyTestimonialsCarousel testimonials={testimonials} />
+      ) : (
+        <div className="rounded-[32px] border border-white/10 bg-white/5 p-6 text-sm text-white/65">
+          Отзывы скоро появятся здесь.
+        </div>
+      )}
     </section>
   );
 }
@@ -604,7 +624,7 @@ function ContactCta() {
             </div>
           </div>
         </div>
-        <ContactForm />
+        <LazyContactForm />
       </div>
     </section>
   );

@@ -1,3 +1,5 @@
+export const revalidate = 60;
+
 import Link from "next/link";
 
 import { CatalogFilters, type CatalogFacetConfig } from "@/components/catalog-filters";
@@ -30,8 +32,10 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
   const priceCurrency = resolvedSearchParams.priceCurrency === "RUB" ? "RUB" : "EUR";
 
   const eurRubRate = await getEurRubRate().catch(() => 100);
-  const { items: allItems } = await getCatalogVehicles({}, eurRubRate);
-  const { items, total } = await getCatalogVehicles(filters, eurRubRate);
+  const [{ items: allItems }, { items, total }] = await Promise.all([
+    getCatalogVehicles({}, eurRubRate),
+    getCatalogVehicles(filters, eurRubRate),
+  ]);
   const facets = buildFacets(allItems);
 
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
