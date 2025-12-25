@@ -41,6 +41,7 @@ const navItems = [
 
 export function AdminShell({ children, admin }: AdminShellProps) {
   const pathname = usePathname();
+  const [mobileNavOpen, setMobileNavOpen] = React.useState(false);
   const displayName = admin?.name?.trim() || 'Администратор';
   const initials = displayName
     .split(' ')
@@ -57,10 +58,36 @@ export function AdminShell({ children, admin }: AdminShellProps) {
     return pathname.startsWith(href);
   };
 
+  React.useEffect(() => {
+    setMobileNavOpen(false);
+  }, [pathname]);
+
+  React.useEffect(() => {
+    if (!mobileNavOpen) {
+      document.body.style.overflow = '';
+      return;
+    }
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileNavOpen]);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-black via-gray-900 to-black text-white">
-      <div className="flex">
-        <aside className="fixed left-0 top-0 h-screen w-64 border-r border-white/10 bg-black/40 backdrop-blur-xl">
+      <div className="flex min-h-screen min-w-0">
+        <div
+          className={`fixed inset-0 z-40 bg-black/70 backdrop-blur-sm transition-opacity lg:hidden ${
+            mobileNavOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
+          }`}
+          onClick={() => setMobileNavOpen(false)}
+          aria-hidden="true"
+        />
+        <aside
+          className={`fixed left-0 top-0 z-50 h-dvh w-72 border-r border-white/10 bg-black/70 backdrop-blur-xl transition-transform duration-200 ease-out lg:translate-x-0 ${
+            mobileNavOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
+        >
           <div className="flex h-full flex-col">
             <div className="border-b border-white/10 px-6 py-6">
               <Link href="/admin" className="flex items-center gap-3">
@@ -81,7 +108,7 @@ export function AdminShell({ children, admin }: AdminShellProps) {
               </Link>
             </div>
 
-            <nav className="flex-1 space-y-1 px-3 py-4">
+            <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
               <div className="px-3 pb-2 text-[11px] uppercase tracking-[0.2em] text-white/35">Меню</div>
               {navItems.map((item) => {
                 const Icon = item.icon;
@@ -96,6 +123,7 @@ export function AdminShell({ children, admin }: AdminShellProps) {
                         ? 'bg-gradient-to-r from-orange-500/20 to-orange-600/20 text-white shadow-md ring-1 ring-orange-500/30'
                         : 'text-white/60 hover:bg-white/5 hover:text-white'
                     }`}
+                    onClick={() => setMobileNavOpen(false)}
                   >
                     <Icon className="h-5 w-5" />
                     {item.label}
@@ -127,9 +155,37 @@ export function AdminShell({ children, admin }: AdminShellProps) {
           </div>
         </aside>
 
-        <main className="ml-64 flex-1 p-8">
-          <div className="mx-auto max-w-[1400px]">{children}</div>
-        </main>
+        <div className="flex min-h-screen min-w-0 flex-1 flex-col lg:ml-72">
+          <div className="sticky top-0 z-30 border-b border-white/10 bg-black/70 px-4 py-3 backdrop-blur lg:hidden">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5">
+                  <Image src="/logo.png" alt="Лого B.I.C." width={22} height={22} className="h-5 w-5" />
+                </div>
+                <div>
+                  <div className="text-sm font-semibold text-white">B.I.C.</div>
+                  <div className="text-xs text-white/50">Панель администратора</div>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileNavOpen(true)}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white/80"
+                aria-label="Открыть меню"
+              >
+                <span className="flex h-5 w-5 flex-col items-center justify-center gap-1">
+                  <span className="h-[2px] w-full rounded-full bg-white" />
+                  <span className="h-[2px] w-full rounded-full bg-white/70" />
+                  <span className="h-[2px] w-full rounded-full bg-white/50" />
+                </span>
+              </button>
+            </div>
+          </div>
+
+          <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">
+            <div className="mx-auto max-w-[1400px]">{children}</div>
+          </main>
+        </div>
       </div>
     </div>
   );

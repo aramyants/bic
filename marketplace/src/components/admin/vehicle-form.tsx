@@ -66,7 +66,7 @@ export function VehicleForm({ action, defaultValues = {}, submitLabel = "Save", 
   }, [showSuccess, showError]);
 
   return (
-    <form action={formAction} className="grid gap-6 rounded-[36px] border border-white/10 bg-white/6 p-8">
+    <form action={formAction} className="grid gap-6 rounded-[36px] border border-white/10 bg-white/6 p-4 sm:p-6 lg:p-8">
       {showSuccess ? (
         <FormMessage ref={messageRef} variant="success">
           {successMessage}
@@ -239,7 +239,7 @@ function SubmitButton({ label }: { label: string }) {
     <button
       type="submit"
       disabled={pending}
-      className="inline-flex h-12 items-center justify-center rounded-full bg-brand-primary px-6 text-xs font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-brand-primary-strong disabled:cursor-not-allowed disabled:bg-brand-primary/50 disabled:text-white/70"
+      className="inline-flex h-12 w-full items-center justify-center rounded-full bg-brand-primary px-6 text-xs font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-brand-primary-strong disabled:cursor-not-allowed disabled:bg-brand-primary/50 disabled:text-white/70 sm:w-auto sm:justify-self-end"
     >
       {pending ? "Сохраняем..." : label}
     </button>

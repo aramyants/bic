@@ -41,7 +41,7 @@ export function TestimonialForm({ action, initialData }: TestimonialFormProps) {
           {state.message ?? 'Unable to save testimonial.'}
         </div>
       ) : null}
-      <div className="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+      <div className="rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm sm:p-6">
         <div className="grid gap-6 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="name">Имя клиента *</Label>
@@ -144,8 +144,8 @@ export function TestimonialForm({ action, initialData }: TestimonialFormProps) {
         </div>
       </div>
 
-      <div className="flex justify-end gap-4">
-        <Button type="submit" size="lg">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+        <Button type="submit" size="lg" className="w-full sm:w-auto">
           {initialData ? 'Сохранить' : 'Создать'} отзыв
         </Button>
       </div>

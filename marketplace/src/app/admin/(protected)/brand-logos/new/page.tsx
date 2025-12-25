@@ -7,7 +7,7 @@ import { createBrandLogoAction } from "@/server/brand-logos-admin";
 export default function NewBrandLogoPage() {
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
         <Link
           href="/admin/brand-logos"
           className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 text-white/60 transition hover:bg-white/5 hover:text-white"

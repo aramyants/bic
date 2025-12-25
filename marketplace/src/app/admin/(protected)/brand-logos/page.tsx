@@ -8,7 +8,7 @@ export default async function BrandLogosPage() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-semibold text-white">Бренды на главной</h1>
           <p className="text-sm text-white/60">
@@ -17,14 +17,14 @@ export default async function BrandLogosPage() {
         </div>
         <Link
           href="/admin/brand-logos/new"
-          className="inline-flex h-12 items-center justify-center rounded-full bg-brand-primary px-6 text-xs font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-brand-primary-strong"
+          className="inline-flex h-12 w-full items-center justify-center rounded-full bg-brand-primary px-6 text-xs font-semibold uppercase tracking-[0.14em] text-white transition hover:bg-brand-primary-strong sm:w-auto"
         >
           Добавить логотип
         </Link>
       </div>
 
-      <div className="overflow-hidden rounded-[28px] border border-white/10 bg-white/5">
-        <table className="w-full table-fixed text-left text-sm text-white/70">
+      <div className="overflow-x-auto rounded-[28px] border border-white/10 bg-white/5">
+        <table className="min-w-[860px] w-full table-auto text-left text-sm text-white/70">
           <thead className="border-b border-white/10 text-xs text-white/45">
             <tr>
               <th className="w-16 px-6 py-4">Лого</th>

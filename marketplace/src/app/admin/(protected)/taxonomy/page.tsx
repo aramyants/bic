@@ -23,7 +23,7 @@ export default async function TaxonomyPage({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-semibold text-white">Справочники</h1>
           <p className="text-sm text-white/60">
@@ -33,7 +33,7 @@ export default async function TaxonomyPage({
         </div>
         <Link
           href="/admin/vehicles"
-          className="rounded-full border border-white/15 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-white/70 hover:text-white"
+          className="w-full rounded-full border border-white/15 px-4 py-2 text-center text-xs font-semibold uppercase tracking-[0.14em] text-white/70 hover:text-white sm:w-auto"
         >
           К автомобилям
         </Link>
@@ -58,10 +58,10 @@ export default async function TaxonomyPage({
         })}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-[2fr,1fr]">
-        <div className="rounded-[28px] border border-white/10 bg-white/5">
-          <div className="overflow-hidden">
-            <table className="w-full table-fixed text-left text-sm text-white/70">
+      <div className="grid min-w-0 gap-4 lg:grid-cols-[2fr,1fr]">
+        <div className="min-w-0 rounded-[28px] border border-white/10 bg-white/5">
+          <div className="min-w-0 overflow-x-auto">
+            <table className="min-w-[720px] w-full table-auto text-left text-sm text-white/70">
               <thead className="border-b border-white/10 text-xs uppercase tracking-[0.14em] text-white/45">
                 <tr>
                   <th className="px-4 py-3">Метка</th>
@@ -131,7 +131,7 @@ export default async function TaxonomyPage({
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-white/10 bg-white/6 p-4 text-sm text-white/80">
+        <div className="min-w-0 rounded-[28px] border border-white/10 bg-white/6 p-4 text-sm text-white/80">
           <h3 className="text-base font-semibold text-white">
             Добавить / обновить
           </h3>

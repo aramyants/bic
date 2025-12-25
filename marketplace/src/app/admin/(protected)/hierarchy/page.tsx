@@ -15,13 +15,13 @@ export default async function HierarchyPage() {
         </p>
       </div>
 
-      <div className="overflow-hidden rounded-[32px] border border-white/10 bg-white/5">
-        <table className="w-full table-fixed text-left text-sm text-white/70">
+      <div className="overflow-x-auto rounded-[32px] border border-white/10 bg-white/5">
+        <table className="min-w-[640px] w-full table-auto text-left text-sm text-white/70">
           <thead className="border-b border-white/10 text-xs text-white/45">
             <tr>
-              <th className="px-6 py-4">Бренд</th>
-              <th className="px-6 py-4">Модели</th>
-              <th className="px-6 py-4 w-24">Кол-во</th>
+              <th className="whitespace-nowrap px-6 py-4">Бренд</th>
+              <th className="whitespace-nowrap px-6 py-4">Модели</th>
+              <th className="whitespace-nowrap px-6 py-4 w-24">Кол-во</th>
             </tr>
           </thead>
           <tbody>

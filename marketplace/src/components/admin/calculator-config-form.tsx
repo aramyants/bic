@@ -44,7 +44,7 @@ export function CalculatorConfigForm({
         value={initialData?.mode ?? 'standard'}
       />
 
-      <div className="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+      <div className="rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm sm:p-6">
         <h3 className="mb-4 text-lg font-semibold text-white">
           Основные настройки
         </h3>
@@ -98,7 +98,7 @@ export function CalculatorConfigForm({
         </div>
       </div>
 
-      <div className="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+      <div className="rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm sm:p-6">
         <h3 className="mb-4 text-lg font-semibold text-white">Логистика</h3>
 
         <div className="grid gap-6 md:grid-cols-2">
@@ -132,7 +132,7 @@ export function CalculatorConfigForm({
         </div>
       </div>
 
-      <div className="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+      <div className="rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm sm:p-6">
         <h3 className="mb-4 text-lg font-semibold text-white">
           Пошлины и налоги
         </h3>
@@ -174,7 +174,7 @@ export function CalculatorConfigForm({
         </div>
       </div>
 
-      <div className="rounded-xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+      <div className="rounded-xl border border-white/10 bg-white/5 p-4 backdrop-blur-sm sm:p-6">
         <h3 className="mb-4 text-lg font-semibold text-white">
           Дополнительные сборы
         </h3>
@@ -206,8 +206,8 @@ export function CalculatorConfigForm({
         </div>
       </div>
 
-      <div className="flex justify-end gap-4">
-        <Button type="submit" size="lg">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+        <Button type="submit" size="lg" className="w-full sm:w-auto">
           {initialData ? 'Сохранить' : 'Создать'} конфигурацию
         </Button>
       </div>

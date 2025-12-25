@@ -54,18 +54,18 @@ export default async function EditVehiclePage({ params }: { params: RouteParams 
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-semibold text-white">Редактировать автомобиль</h1>
           <p className="text-sm text-white/60">
             Обновите описание, галерею и стоимость, чтобы карточки и расчёты были актуальны.
           </p>
         </div>
-        <form action={deleteVehicleAction}>
+        <form action={deleteVehicleAction} className="w-full sm:w-auto">
           <input type="hidden" name="id" value={vehicle.id} />
           <button
             type="submit"
-            className="inline-flex h-10 items-center justify-center rounded-full border border-red-500/40 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-red-200 transition hover:border-red-400 hover:text-red-100"
+            className="inline-flex h-10 w-full items-center justify-center rounded-full border border-red-500/40 px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-red-200 transition hover:border-red-400 hover:text-red-100 sm:w-auto"
           >
             Delete
           </button>

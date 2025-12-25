@@ -27,8 +27,8 @@ export default async function EditBrandLogoPage({ params }: { params: RouteParam
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col items-start gap-4 sm:flex-row sm:items-center">
           <Link
             href="/admin/brand-logos"
             className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 text-white/60 transition hover:bg-white/5 hover:text-white"
@@ -40,11 +40,11 @@ export default async function EditBrandLogoPage({ params }: { params: RouteParam
             <p className="text-sm text-white/60">Обновите имя, ссылку и статус отображения.</p>
           </div>
         </div>
-        <form action={deleteBrandLogoAction}>
+        <form action={deleteBrandLogoAction} className="w-full sm:w-auto">
           <input type="hidden" name="id" value={logo.id} />
           <button
             type="submit"
-            className="rounded-lg border border-red-500/50 px-4 py-2 text-sm font-medium text-red-300 transition hover:bg-red-500/10"
+            className="w-full rounded-lg border border-red-500/50 px-4 py-2 text-sm font-medium text-red-300 transition hover:bg-red-500/10 sm:w-auto"
           >
             Удалить
           </button>

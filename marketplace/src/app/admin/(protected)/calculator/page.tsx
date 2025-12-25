@@ -9,7 +9,7 @@ export default async function CalculatorPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold text-white">Конфигуратор калькулятора</h1>
           <p className="mt-1 text-sm text-white/60">
@@ -18,7 +18,7 @@ export default async function CalculatorPage() {
         </div>
         <Link
           href="/admin/calculator/new"
-          className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg transition hover:opacity-90"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 px-4 py-2.5 text-sm font-medium text-white shadow-lg transition hover:opacity-90 sm:w-auto"
         >
           <Plus className="h-4 w-4" />
           Новая конфигурация

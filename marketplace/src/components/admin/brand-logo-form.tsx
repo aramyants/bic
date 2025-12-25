@@ -49,7 +49,7 @@ export function BrandLogoForm({ action, defaultValues = {}, submitLabel = "Со�
   }, [showError, showSuccess, state.message]);
 
   return (
-    <form action={formAction} className="space-y-6 rounded-[28px] border border-white/10 bg-white/5 p-6 text-sm text-white/70">
+    <form action={formAction} className="space-y-6 rounded-[28px] border border-white/10 bg-white/5 p-4 text-sm text-white/70 sm:p-6">
       {statusBadge ? (
         <div
           ref={messageRef}
@@ -102,7 +102,7 @@ export function BrandLogoForm({ action, defaultValues = {}, submitLabel = "Со�
       <input type="hidden" name="logoUrl" value={logo[0] ?? ""} />
       {defaultValues.id ? <input type="hidden" name="id" value={defaultValues.id} /> : null}
 
-      <div className="flex justify-end">
+      <div className="flex flex-col sm:flex-row sm:justify-end">
         <SubmitButton label={submitLabel} />
       </div>
     </form>
@@ -167,7 +167,7 @@ function SubmitButton({ label }: { label: string }) {
     <button
       type="submit"
       disabled={pending}
-      className="inline-flex h-11 items-center justify-center rounded-full bg-brand-primary px-6 text-xs font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-brand-primary-strong disabled:cursor-not-allowed disabled:bg-brand-primary/50 disabled:text-white/70"
+      className="inline-flex h-11 w-full items-center justify-center rounded-full bg-brand-primary px-6 text-xs font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-brand-primary-strong disabled:cursor-not-allowed disabled:bg-brand-primary/50 disabled:text-white/70 sm:w-auto"
     >
       {pending ? "Сохраняем..." : label}
     </button>
