@@ -141,7 +141,7 @@ export function RequestModalProvider({
       {isOpen ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-3 py-4 backdrop-blur-sm sm:px-4 sm:py-6">
           <div className="absolute inset-0" onClick={() => setIsOpen(false)} aria-hidden="true" />
-          <div className="relative z-10 w-full max-w-[540px] overflow-hidden rounded-3xl border border-white/15 bg-[#0f0f10]/95 text-white shadow-2xl shadow-black/40 max-h-[min(92vh,720px)]">
+          <div className="relative z-10 w-full max-w-[540px] overflow-hidden rounded-3xl border border-white/15 bg-[#0f0f10]/95 text-white shadow-2xl shadow-black/40 max-h-[calc(100dvh-2rem)] sm:max-h-[min(88dvh,760px)]">
             <style jsx>{`
               .custom-scroll::-webkit-scrollbar {
                 width: 8px;
@@ -214,7 +214,7 @@ export function RequestModalProvider({
             <div
               className="px-6 py-5 overflow-y-auto custom-scroll"
               style={{
-                maxHeight: "calc(90vh - 120px)",
+                maxHeight: "calc(100dvh - 220px)",
                 scrollbarWidth: "thin",
               }}
             >
