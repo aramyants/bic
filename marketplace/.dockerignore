@@ -22,5 +22,10 @@ yarn-error.log*
 # Tests and coverage
 coverage
 
+# Local scratch assets
+python
+tmp_*.tsx
+cars.json
+
 # OS junk
 *.DS_Store
