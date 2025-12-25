@@ -1,7 +1,8 @@
-import { NextResponse } from "next/server";
+﻿import { NextResponse } from "next/server";
 
 import {
   sendBotCatalogMessage,
+  sendBotChannelMessage,
   sendBotLeadToManagers,
   sendBotThanks,
   sendBotWelcome,
@@ -65,6 +66,11 @@ export async function POST(request: Request) {
 
   if (normalizedText.startsWith("/catalog") || normalizedText === "каталог") {
     await sendBotCatalogMessage(message.chat.id);
+    return NextResponse.json({ ok: true });
+  }
+
+  if (normalizedText.startsWith("/channel") || normalizedText === "канал") {
+    await sendBotChannelMessage(message.chat.id);
     return NextResponse.json({ ok: true });
   }
 

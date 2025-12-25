@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import * as React from "react";
 import Image from "next/image";
@@ -31,6 +31,7 @@ export const VehicleGallery: React.FC<VehicleGalleryProps> = ({ images, title })
   const [activeIndex, setActiveIndex] = React.useState(0);
   const thumbnailsRef = React.useRef<HTMLDivElement | null>(null);
   const total = images.length;
+  const [useNativeImages, setUseNativeImages] = React.useState(false);
 
   const clampIndex = React.useCallback(
     (index: number) => {
@@ -49,6 +50,16 @@ export const VehicleGallery: React.FC<VehicleGalleryProps> = ({ images, title })
   }, [clampIndex]);
 
   React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const ua = window.navigator.userAgent ?? "";
+    const isTelegram = /Telegram/i.test(ua);
+    const isNarrow = window.matchMedia?.("(max-width: 768px)").matches ?? false;
+    if (isTelegram || isNarrow) {
+      setUseNativeImages(true);
+    }
+  }, []);
+
+  React.useEffect(() => {
     const container = thumbnailsRef.current;
     if (!container) return;
     const activeThumb = container.querySelector<HTMLButtonElement>('[data-active="true"]');
@@ -60,6 +71,7 @@ export const VehicleGallery: React.FC<VehicleGalleryProps> = ({ images, title })
     ? shouldBypassOptimization(activeImage.url)
     : false;
   const activeImageSrc = activeImage ? getImageSrc(activeImage.url) : "";
+  const activeUsesNativeImage = useNativeImages && activeImageBypassOptimization;
 
   return (
     <div className="flex flex-col gap-4">
@@ -94,22 +106,33 @@ export const VehicleGallery: React.FC<VehicleGalleryProps> = ({ images, title })
         onTouchEnd={() => {
           touchStartX.current = null;
         }}
-        aria-label="Просмотр галереи автомобиля"
+        aria-label="DY¥?D_¥?D¬D_¥,¥? D3DøD¯Dæ¥?DæD, DøDý¥,D_D¬D_DñD,D¯¥?"
       >
         <div className="relative aspect-[16/10] w-full">
           {activeImage ? (
-            <Image
-              key={activeImage.id ?? activeImage.url}
-              src={activeImageSrc}
-              alt={activeImage.altText ?? title}
-              fill
-              sizes="(max-width:768px) 100vw, 60vw"
-              className="object-cover transition duration-500 ease-out"
-              priority
-              unoptimized={activeImageBypassOptimization}
-            />
+            activeUsesNativeImage ? (
+              <img
+                src={activeImageSrc}
+                alt={activeImage.altText ?? title}
+                className="absolute inset-0 h-full w-full object-cover transition duration-500 ease-out"
+                loading="eager"
+                decoding="async"
+              />
+            ) : (
+              <Image
+                key={activeImage.id ?? activeImage.url}
+                src={activeImageSrc}
+                alt={activeImage.altText ?? title}
+                fill
+                sizes="(max-width:768px) 100vw, 60vw"
+                className="object-cover transition duration-500 ease-out"
+                priority
+                unoptimized={activeImageBypassOptimization}
+                onError={() => setUseNativeImages(true)}
+              />
+            )
           ) : (
-            <div className="flex h-full items-center justify-center text-sm text-white/50">Фото пока нет</div>
+            <div className="flex h-full items-center justify-center text-sm text-white/50">DD_¥,D_ D¨D_D§Dø D«Dæ¥,</div>
           )}
         </div>
 
@@ -119,7 +142,7 @@ export const VehicleGallery: React.FC<VehicleGalleryProps> = ({ images, title })
               type="button"
               onClick={showPrev}
               className="absolute left-4 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/60 text-white opacity-100 transition hover:bg-black/80 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
-              aria-label="Предыдущее фото"
+              aria-label="DY¥?DæD'¥<D'¥Ÿ¥%DæDæ ¥,D_¥,D_"
             >
               <ChevronLeft className="h-6 w-6" />
             </button>
@@ -127,7 +150,7 @@ export const VehicleGallery: React.FC<VehicleGalleryProps> = ({ images, title })
               type="button"
               onClick={showNext}
               className="absolute right-4 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/60 text-white opacity-100 transition hover:bg-black/80 focus-visible:opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
-              aria-label="Следующее фото"
+              aria-label="D­D¯DæD'¥Ÿ¥Z¥%DæDæ ¥,D_¥,D_"
             >
               <ChevronRight className="h-6 w-6" />
             </button>
@@ -143,7 +166,7 @@ export const VehicleGallery: React.FC<VehicleGalleryProps> = ({ images, title })
           ref={thumbnailsRef}
           className="flex gap-3 overflow-x-auto pb-2"
           style={{ scrollSnapType: "x mandatory" }}
-          aria-label="Миниатюры фотографий"
+          aria-label="DoD,D«D,Dø¥,¥Z¥?¥< ¥,D_¥,D_D3¥?Dø¥,D,D1"
         >
           {images.map((image, index) => (
             <button
@@ -156,17 +179,28 @@ export const VehicleGallery: React.FC<VehicleGalleryProps> = ({ images, title })
                 index === activeIndex && "ring-2 ring-brand-primary",
               )}
               style={{ scrollSnapAlign: "center" }}
-              aria-label={`Показать фото ${index + 1}`}
+              aria-label={`DYD_D§DøDúDø¥,¥O ¥,D_¥,D_ ${index + 1}`}
             >
-              <Image
-                src={getImageSrc(image.url)}
-                alt={image.altText ?? title}
-                fill
-                sizes="120px"
-                className="object-cover"
-                loading={index === 0 ? "eager" : "lazy"}
-                unoptimized={shouldBypassOptimization(image.url)}
-              />
+              {useNativeImages && shouldBypassOptimization(image.url) ? (
+                <img
+                  src={getImageSrc(image.url)}
+                  alt={image.altText ?? title}
+                  className="absolute inset-0 h-full w-full object-cover"
+                  loading={index === 0 ? "eager" : "lazy"}
+                  decoding="async"
+                />
+              ) : (
+                <Image
+                  src={getImageSrc(image.url)}
+                  alt={image.altText ?? title}
+                  fill
+                  sizes="120px"
+                  className="object-cover"
+                  loading={index === 0 ? "eager" : "lazy"}
+                  unoptimized={shouldBypassOptimization(image.url)}
+                  onError={() => setUseNativeImages(true)}
+                />
+              )}
               {index === activeIndex ? <span className="absolute inset-0 border-2 border-brand-primary" /> : null}
             </button>
           ))}
@@ -175,3 +209,4 @@ export const VehicleGallery: React.FC<VehicleGalleryProps> = ({ images, title })
     </div>
   );
 };
+

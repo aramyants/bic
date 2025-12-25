@@ -84,14 +84,27 @@ export async function getVehicles(filter: VehicleFilter = {}) {
   if (filter.search) {
     const trimmed = filter.search.trim();
     if (trimmed) {
-      const pattern = `%${trimmed}%`;
-      const searchExpression = or(
-        ilike(vehicles.brand, pattern),
-        ilike(vehicles.model, pattern),
-        ilike(vehicles.title, pattern),
-      );
-      if (searchExpression) {
-        expressions.push(searchExpression);
+      const tokens = trimmed.split(/\s+/).filter(Boolean);
+      const tokenExpressions = tokens.map((token) => {
+        const variants = new Set([token]);
+        if (token.includes("-")) {
+          variants.add(token.replace(/-/g, " "));
+        }
+        const variantExpressions = Array.from(variants).flatMap((variant) => {
+          const pattern = `%${variant}%`;
+          return [
+            ilike(vehicles.brand, pattern),
+            ilike(vehicles.model, pattern),
+            ilike(vehicles.title, pattern),
+          ];
+        });
+        return or(...variantExpressions);
+      });
+
+      if (tokenExpressions.length === 1) {
+        expressions.push(tokenExpressions[0]);
+      } else if (tokenExpressions.length > 1) {
+        expressions.push(and(...tokenExpressions));
       }
     }
   }

@@ -1,4 +1,4 @@
-import { formatCurrency } from "@/lib/utils";
+﻿import { formatCurrency } from "@/lib/utils";
 import type { VehicleWithRelations } from "@/server/vehicle-service";
 
 type LeadPayload = {
@@ -41,9 +41,10 @@ const normalizeBaseUrl = (value?: string) => {
 
 const APP_URL = normalizeBaseUrl(process.env.PUBLIC_APP_URL || process.env.NEXT_PUBLIC_SITE_URL);
 const CATALOG_URL = `${APP_URL}/catalog`;
-const DEFAULT_LOGO_URL = `${APP_URL}/logo.png`;
+const DEFAULT_LOGO_URL = `${APP_URL}/telegram-logo.png`;
 const BOT_LOGO_URL = process.env.TELEGRAM_BOT_LOGO_URL || DEFAULT_LOGO_URL;
-
+const CHANNEL_URL =
+  process.env.TELEGRAM_PUBLIC_CHANNEL_URL || process.env.TELEGRAM_CHANNEL_URL || undefined;
 const TELEGRAM_USERNAME = /^@?[a-zA-Z0-9_]{5,32}$/;
 
 const escapeMarkdown = (text: string) =>
@@ -64,13 +65,29 @@ const buildPhoneLink = (value?: string | null) => {
   return `tel:${sanitized}`;
 };
 
-const buildCatalogInlineKeyboard = () => ({
-  inline_keyboard: [[{ text: "Открыть каталог", web_app: { url: CATALOG_URL } }]],
-});
+const normalizedChannelUrl = CHANNEL_URL?.trim() || null;
+
+const buildCatalogInlineKeyboard = () => {
+  const rows: Array<Array<{ text: string; url?: string; web_app?: { url: string } }>> = [
+    [{ text: "Открыть каталог", web_app: { url: CATALOG_URL } }],
+  ];
+  if (normalizedChannelUrl) {
+    rows.push([{ text: "Наш Telegram-канал", url: normalizedChannelUrl }]);
+  }
+  return { inline_keyboard: rows };
+};
 
 const buildCatalogReplyKeyboard = () => ({
-  keyboard: [[{ text: "Каталог", web_app: { url: CATALOG_URL } }]],
+  keyboard: normalizedChannelUrl
+    ? [[{ text: "Каталог", web_app: { url: CATALOG_URL } }, { text: "Канал" }]]
+    : [[{ text: "Каталог", web_app: { url: CATALOG_URL } }]],
   resize_keyboard: true,
+});
+
+const buildChannelInlineKeyboard = () => ({
+  inline_keyboard: normalizedChannelUrl
+    ? [[{ text: "Открыть канал", url: normalizedChannelUrl }]]
+    : [],
 });
 
 const buildBotUserName = (payload: BotLeadPayload) => {
@@ -97,6 +114,24 @@ async function sendTelegramPhoto(payload: Record<string, unknown>) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
+  });
+}
+
+async function setChatMenuButton(chatId?: number) {
+  if (!BOT_TOKEN) {
+    return;
+  }
+  await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/setChatMenuButton`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      ...(chatId ? { chat_id: chatId } : {}),
+      menu_button: {
+        type: "web_app",
+        text: "Каталог",
+        web_app: { url: CATALOG_URL },
+      },
+    }),
   });
 }
 
@@ -149,6 +184,8 @@ export async function sendBotWelcome(chatId: number) {
     return;
   }
 
+  await setChatMenuButton(chatId);
+
   const text = [
     "🚗 B.I.C. — Best Imported Cars",
     "Авто из 🇺🇸 США, 🇰🇷 Кореи и 🇪🇺 Европы под ключ.",
@@ -194,6 +231,18 @@ export async function sendBotCatalogMessage(chatId: number) {
     chat_id: chatId,
     text: "🚗 Откройте каталог B.I.C. в мини-приложении.",
     reply_markup: buildCatalogInlineKeyboard(),
+  });
+}
+
+export async function sendBotChannelMessage(chatId: number) {
+  if (!BOT_TOKEN || !normalizedChannelUrl) {
+    return;
+  }
+
+  await sendTelegramMessage({
+    chat_id: chatId,
+    text: "📣 Подписывайтесь на наш Telegram-канал — новости, новые авто и лучшие предложения.",
+    reply_markup: buildChannelInlineKeyboard(),
   });
 }
 

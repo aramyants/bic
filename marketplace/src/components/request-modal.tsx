@@ -48,6 +48,7 @@ export function RequestModalProvider({
   const [context, setContext] = useState<RequestContext | null>(null);
   const [showToast, setShowToast] = useState(false);
   const [hasAutoOpenedTg, setHasAutoOpenedTg] = useState(false);
+  const [isTelegramWebApp, setIsTelegramWebApp] = useState(false);
 
   useEffect(() => {
     requestModalStore.current = {
@@ -67,6 +68,14 @@ export function RequestModalProvider({
       setActiveTab("call");
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const webApp = (window as any).Telegram?.WebApp;
+    if (webApp) {
+      setIsTelegramWebApp(true);
+    }
+  }, []);
 
   const handleSubmitted = () => {
     setIsOpen(false);
@@ -98,13 +107,33 @@ export function RequestModalProvider({
     return `${base}${separator}text=${encodeURIComponent(telegramMessage)}`;
   }, [telegramMessage, resolvedTelegramUsername, resolvedTelegramFallbackLink]);
 
+  const openTelegramUrl = (url: string) => {
+    if (typeof window === "undefined") return;
+    const webApp = (window as any).Telegram?.WebApp;
+    if (webApp?.openTelegramLink) {
+      webApp.openTelegramLink(url);
+      return;
+    }
+    if (webApp?.openLink) {
+      webApp.openLink(url, { try_instant_view: false });
+      return;
+    }
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
   // auto-open Telegram when the tab is selected
   useEffect(() => {
+    if (typeof window !== "undefined" && (window as any).Telegram?.WebApp) {
+      return;
+    }
+    if (isTelegramWebApp) {
+      return;
+    }
     if (activeTab === "telegram" && telegramUrl && !hasAutoOpenedTg) {
       setHasAutoOpenedTg(true);
-      window.open(telegramUrl, "_blank", "noopener,noreferrer");
+      openTelegramUrl(telegramUrl);
     }
-  }, [activeTab, telegramUrl, hasAutoOpenedTg]);
+  }, [activeTab, telegramUrl, hasAutoOpenedTg, isTelegramWebApp]);
 
   return (
     <>
@@ -167,7 +196,7 @@ export function RequestModalProvider({
                   setActiveTab("telegram");
                   setHasAutoOpenedTg(false);
                   if (telegramUrl) {
-                    window.open(telegramUrl, "_blank", "noopener,noreferrer");
+                    openTelegramUrl(telegramUrl);
                   }
                 }}
                 className={cn(
@@ -219,7 +248,7 @@ export function RequestModalProvider({
                     disabled={!telegramUrl}
                     onClick={() => {
                       if (telegramUrl) {
-                        window.open(telegramUrl, "_blank", "noopener,noreferrer");
+                        openTelegramUrl(telegramUrl);
                       }
                     }}
                   >

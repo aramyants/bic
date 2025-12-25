@@ -34,6 +34,7 @@ const getImageSrc = (url: string) => {
 export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, eurRubRate, priceCurrency = "EUR" }) => {
   const { isFavorite, toggleFavorite } = useFavorites();
   const isFav = isFavorite(vehicle.id);
+  const [useNativeImages, setUseNativeImages] = React.useState(false);
 
   const basePriceRubValue = vehicle.basePriceRub ?? Math.round(vehicle.basePriceEur * eurRubRate);
   const basePriceRub = formatCurrency(basePriceRubValue, "RUB");
@@ -43,8 +44,8 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, eurRubRate, p
   const title =
     vehicle.title && vehicle.title !== "undefined undefined"
       ? vehicle.title
-      : `${vehicle.brand || "Авто"} ${vehicle.model || ""}`.trim();
-  const description = vehicle.shortDescription ?? "Описание появится позже.";
+      : `${vehicle.brand || "Без марки"} ${vehicle.model || ""}`.trim();
+  const description = vehicle.shortDescription ?? "Краткое описание отсутствует.";
 
   const photos = vehicle.gallery?.length
     ? vehicle.gallery
@@ -54,7 +55,18 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, eurRubRate, p
   const [photoIndex, setPhotoIndex] = React.useState(0);
   const activePhoto = photos[photoIndex];
   const activePhotoBypassOptimization = shouldBypassOptimization(activePhoto.url);
+  const activeUsesNativeImage = useNativeImages && activePhotoBypassOptimization;
   const activePhotoSrc = getImageSrc(activePhoto.url);
+
+  React.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const ua = window.navigator.userAgent ?? "";
+    const isTelegram = /Telegram/i.test(ua);
+    const isNarrow = window.matchMedia?.("(max-width: 768px)").matches ?? false;
+    if (isTelegram || isNarrow) {
+      setUseNativeImages(true);
+    }
+  }, []);
 
   const next = () => setPhotoIndex((prev) => (prev + 1) % photos.length);
   const prev = () => setPhotoIndex((prev) => (prev - 1 + photos.length) % photos.length);
@@ -62,15 +74,26 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, eurRubRate, p
   return (
     <div className="group relative flex h-full flex-col overflow-hidden rounded-[36px] border border-white/10 bg-white/8 backdrop-blur-xl shadow-soft transition hover:shadow-strong">
       <div className="relative h-64 overflow-hidden">
-        <Image
-          src={activePhotoSrc}
-          alt={vehicle.title}
-          fill
-          sizes="(max-width:768px) 100vw, 33vw"
-          className="object-cover transition duration-500 group-hover:scale-105"
-          priority
-          unoptimized={activePhotoBypassOptimization}
-        />
+        {activeUsesNativeImage ? (
+          <img
+            src={activePhotoSrc}
+            alt={vehicle.title}
+            className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            loading="eager"
+            decoding="async"
+          />
+        ) : (
+          <Image
+            src={activePhotoSrc}
+            alt={vehicle.title}
+            fill
+            sizes="(max-width:768px) 100vw, 33vw"
+            className="object-cover transition duration-500 group-hover:scale-105"
+            priority
+            unoptimized={activePhotoBypassOptimization}
+            onError={() => setUseNativeImages(true)}
+          />
+        )}
         {photos.length > 1 && (
           <>
             <button
@@ -103,7 +126,7 @@ export const VehicleCard: React.FC<VehicleCardProps> = ({ vehicle, eurRubRate, p
       </div>
       <div className="flex flex-1 flex-col gap-5 p-6">
         <div className="space-y-2">
-          <div className="text-xs text-white/55">{vehicle.brand || "Марка неизвестна"}</div>
+          <div className="text-xs text-white/55">{vehicle.brand || "Неизвестный бренд"}</div>
           <h3 className="text-lg font-semibold text-white">{title}</h3>
           <p className="text-sm text-white/65">{description}</p>
         </div>
